@@ -1,6 +1,6 @@
 # M1 — Fondamenta
 
-Chiusa il 19/08/2026 · commit iniziale `d949622` · commit finale `f0e49ec`
+Chiusa il 19/08/2026 · commit iniziale `3e47d98` · commit finale `08cc6e8`
 
 Undici task su undici. Il repository è pubblico su
 <https://github.com/imadelmir/bi-pipeline> e la CI è verde.
