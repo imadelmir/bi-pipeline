@@ -73,17 +73,21 @@ PowerShell equivalente: `.\make.ps1 up`, `.\make.ps1 ingest`, e così via.
 
 | Comando | Cosa fa |
 | --- | --- |
-| `make up` | Alza i servizi Docker (PostgreSQL) |
-| `make down` | Li ferma |
+| `make up` | Alza i servizi Docker (PostgreSQL) e aspetta che il database risponda |
+| `make down` | Li ferma; il volume dei dati resta |
+| `make psql` | Apre `psql` dentro il contenitore — sulla macchina non serve installarlo |
+| `make check` | Formattazione, lint e tipi: gli stessi controlli della CI |
+| `make format` | Formatta e corregge quello che si può correggere da solo |
 | `make ingest` | Scarica, verifica il checksum e carica in `raw` con `COPY` |
 | `make build` | `dbt build`: modelli e test insieme |
 | `make test` | Solo i test, senza ricostruire i modelli |
 | `make docs` | Genera e apre la documentazione dbt con il lineage |
 | `make flow` | Il flusso Prefect completo |
-| `make check` | Formattazione, lint e type check — gli stessi controlli della CI |
 
-I comandi delle milestone non ancora raggiunte esistono già e lo dicono:
-stampano quale task li riempirà, invece di fallire con un errore oscuro.
+I comandi delle milestone non ancora raggiunte esistono già e dichiarano quale
+task li riempirà, poi escono con errore: un comando che non fa niente e risponde
+«tutto bene» è il modo più rapido per costruirsi una CI verde che non prova
+nulla.
 
 ## Struttura
 

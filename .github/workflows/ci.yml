@@ -1,0 +1,57 @@
+# Controlli automatici su ogni push e pull request (M1-T10).
+#
+# A cosa serve, visto che gli stessi controlli girano già nell'hook
+# pre-commit: a girare *sempre*. Un hook si salta con --no-verify e una
+# macchina appena clonata non lo ha nemmeno attivo. Qui il verde o il rosso
+# stanno scritti accanto al commit, e una pull request rossa non si unisce.
+#
+# I test dei modelli (`dbt build` su un PostgreSQL di servizio) entrano in
+# M5-T10, quando esisteranno modelli da testare. Finché non ci sono, un job
+# che "passa" senza provare niente sarebbe peggio della sua assenza.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Permette di rilanciare a mano un controllo fallito per una causa esterna,
+  # senza inventare un commit finto solo per far ripartire la CI.
+  workflow_dispatch:
+
+# Un push nuovo sullo stesso ramo annulla la verifica precedente: quella
+# vecchia riguarda codice che non esiste più.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qualita:
+    name: Formato, lint e tipi
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Installa uv
+        uses: astral-sh/setup-uv@v10
+        with:
+          # La cache si invalida quando cambia il lockfile, che è l'unica cosa
+          # che cambia davvero le dipendenze installate.
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      # `--frozen` fallisce se uv.lock non è allineato a pyproject.toml:
+      # è il controllo che impedisce di scoprire in produzione che qualcuno
+      # ha cambiato una dipendenza senza committare il lockfile.
+      - name: Installa le dipendenze bloccate
+        run: uv sync --frozen
+
+      - name: Formattazione
+        run: uv run --frozen ruff format --check .
+
+      - name: Lint
+        run: uv run --frozen ruff check .
+
+      - name: Tipi (mypy --strict)
+        run: uv run --frozen mypy
