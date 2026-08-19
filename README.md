@@ -4,10 +4,9 @@ Un milione di righe di vendite grezze entrano da un file, escono da un cruscotto
 con cinque indicatori, e in mezzo attraversano quattro strati che si possono
 rilanciare uno per uno senza sporcare niente.
 
-<!-- Badge della CI: da aggiungere in M1-T10, quando il repository remoto esiste
-     e il primo workflow è passato. -->
+[![CI](https://github.com/imadelmir/bi-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/imadelmir/bi-pipeline/actions/workflows/ci.yml)
 
-> **Stato:** in costruzione — milestone M1 (Fondamenta).
+> **Stato:** in costruzione — M1 (Fondamenta) chiusa, si passa a M2 (Ingestione).
 > Il case study completo arriva a M8.
 
 ---
