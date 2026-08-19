@@ -1,6 +1,6 @@
 # M3 — Staging
 
-Chiusa il 20/08/2026 · commit iniziale `8992ed6` · commit finale da questa relazione
+Chiusa il 20/08/2026 · commit iniziale `8992ed6` · commit finale `b0ffcdf`
 
 Undici task su undici. Da 1.067.371 righe grezze escono 1.021.137 righe pulite,
 e le 46.234 che restano fuori sono contate una per una con il loro motivo.
