@@ -53,3 +53,6 @@ desktop.ini
 .idea/
 .vscode/*
 !.vscode/settings.json
+
+# Log delle esecuzioni degli script: utili sul momento, inutili in git.
+*.log
