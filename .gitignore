@@ -56,3 +56,6 @@ desktop.ini
 
 # Log delle esecuzioni degli script: utili sul momento, inutili in git.
 *.log
+
+# Identificativo anonimo generato da dbt a ogni esecuzione.
+dbt/.user.yml
