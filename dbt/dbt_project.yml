@@ -1,0 +1,44 @@
+# Progetto dbt (M3-T1).
+#
+# Due schemi di destinazione: staging come viste, marts come tabelle.
+# La regola sta qui e non in ogni modello: una vista si ricalcola a ogni
+# interrogazione e non ha stato da sporcare, una tabella si materializza una
+# volta e regge le interrogazioni dei cruscotti.
+
+name: bi_pipeline
+version: "1.0.0"
+config-version: 2
+
+profile: bi_pipeline
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  bi_pipeline:
+    staging:
+      +materialized: view
+      +schema: staging
+    marts:
+      +materialized: table
+      +schema: marts
+
+seeds:
+  bi_pipeline:
+    +schema: staging
+    # I codici di servizio sono testo anche quando sembrano numeri.
+    +column_types:
+      codice: text
+
+# Variabili del progetto.
+vars:
+  # Quanti mesi di dati carica il target `dev` (M3-T3). Il valore serve alla
+  # macro `limite_periodo`: `prod` lo ignora e prende tutto.
+  mesi_in_dev: 3

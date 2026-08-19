@@ -9,6 +9,32 @@
 COMPOSE := docker compose
 UV      := uv run --frozen
 
+# dbt non legge .env da solo: le variabili gli arrivano dall'ambiente, e qui
+# vengono caricate una volta per tutti i comandi. Il file resta l'unico posto
+# dove stanno le credenziali.
+ifneq (,$(wildcard .env))
+include .env
+export
+endif
+
+# --project-dir e --profiles-dir: il progetto dbt sta in dbt/, e il profilo
+# accanto ai modelli invece che in ~/.dbt. Chi clona il repository non deve
+# scrivere niente nella propria cartella utente.
+# dbt si avvia come modulo Python e non con il suo eseguibile: su Windows il
+# criterio di controllo delle applicazioni blocca gli .exe generati dentro
+# .venv (vedi scripts/esegui_dbt.py).
+DBT := $(UV) python scripts/esegui_dbt.py
+
+# Il progetto dbt sta in dbt/, e il profilo accanto ai modelli invece che in
+# ~/.dbt: chi clona il repository non deve scrivere nella propria cartella
+# utente.
+export DBT_PROJECT_DIR  := dbt
+export DBT_PROFILES_DIR := dbt
+
+# Il target predefinito e' dev: un trimestre di dati, ciclo di prova rapido.
+# Per la produzione: make build TARGET=prod
+TARGET ?= dev
+
 .DEFAULT_GOAL := help
 .PHONY: help up down psql ingest profila confronto build test docs flow check format
 
@@ -56,14 +82,16 @@ profila: ## Riconta lo sporco della sorgente e riscrive docs/profilazione.md
 confronto: ## Cronometra COPY contro pandas.to_sql su centomila righe
 	$(UV) python -m ingestion.confronto_copy
 
-build: ## dbt build: modelli e test insieme
-	@echo "Non ancora implementato: arriva con M3-T1 (dbt init)." && exit 1
+build: ## dbt build: modelli e test insieme (TARGET=dev di default)
+	$(DBT) seed --target $(TARGET)
+	$(DBT) build --target $(TARGET)
 
-test: ## Solo i test dbt, senza ricostruire i modelli
-	@echo "Non ancora implementato: arriva con M5-T1." && exit 1
+test: ## Solo i test, senza ricostruire i modelli
+	$(DBT) test --target $(TARGET)
 
 docs: ## Genera e apre la documentazione dbt con il lineage
-	@echo "Non ancora implementato: arriva con M5-T9." && exit 1
+	$(DBT) docs generate --target $(TARGET)
+	$(DBT) docs serve --target $(TARGET)
 
 flow: ## Il flusso Prefect completo, dall'inizio alla fine
 	@echo "Non ancora implementato: arriva con M6-T1." && exit 1

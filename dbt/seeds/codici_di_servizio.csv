@@ -1,0 +1,27 @@
+codice,descrizione,motivo
+POST,POSTAGE,spedizione
+DOT,DOTCOM POSTAGE,spedizione
+C2,CARRIAGE,trasporto
+C3,CARRIAGE,trasporto
+CARRIAGE,CARRIAGE,trasporto
+M,Manual,rettifica manuale
+D,Discount,sconto
+S,SAMPLES,campioni omaggio
+B,Adjust bad debt,insoluto
+BANK CHARGES,Bank Charges,commissioni bancarie
+AMAZONFEE,AMAZON FEE,commissione di piattaforma
+CRUK,CRUK Commission,commissione
+ADJUST,Adjustment,rettifica di magazzino
+ADJUST2,Adjustment,rettifica di magazzino
+TEST001,This is a test product.,riga di prova
+TEST002,This is a test product.,riga di prova
+GIFT,Gift voucher,buono regalo
+gift_0001_10,Dotcomgiftshop Gift Voucher,buono regalo
+gift_0001_20,Dotcomgiftshop Gift Voucher,buono regalo
+gift_0001_30,Dotcomgiftshop Gift Voucher,buono regalo
+gift_0001_40,Dotcomgiftshop Gift Voucher,buono regalo
+gift_0001_50,Dotcomgiftshop Gift Voucher,buono regalo
+gift_0001_60,Dotcomgiftshop Gift Voucher,buono regalo
+gift_0001_70,Dotcomgiftshop Gift Voucher,buono regalo
+gift_0001_80,Dotcomgiftshop Gift Voucher,buono regalo
+gift_0001_90,Dotcomgiftshop Gift Voucher,buono regalo

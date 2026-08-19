@@ -1,0 +1,38 @@
+# Profilo di connessione di dbt (M3-T1).
+#
+#   cp dbt/profiles.yml.example dbt/profiles.yml
+#
+# Il file vero è in .gitignore. Non contiene comunque nessuna credenziale:
+# i valori arrivano dalle stesse variabili d'ambiente di `.env` che usa
+# l'ingestione, così la connessione è definita in un posto solo.
+#
+# `make build` e gli altri comandi caricano `.env` prima di chiamare dbt.
+# Per lanciare dbt a mano dalla cartella `dbt/`, le variabili devono già
+# essere nell'ambiente.
+
+bi_pipeline:
+  target: dev
+
+  outputs:
+    # Sviluppo: pochi mesi di dati, per avere un ciclo di prova rapido.
+    # Il taglio non è scritto nei modelli ma nella macro `limite_periodo`.
+    dev:
+      type: postgres
+      host: "{{ env_var('POSTGRES_HOST', 'localhost') }}"
+      port: "{{ env_var('POSTGRES_PORT', '5432') | int }}"
+      user: "{{ env_var('POSTGRES_USER') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD') }}"
+      dbname: "{{ env_var('POSTGRES_DB') }}"
+      schema: staging
+      threads: 4
+
+    # Produzione: tutti i dati. Stessi identici modelli.
+    prod:
+      type: postgres
+      host: "{{ env_var('POSTGRES_HOST', 'localhost') }}"
+      port: "{{ env_var('POSTGRES_PORT', '5432') | int }}"
+      user: "{{ env_var('POSTGRES_USER') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD') }}"
+      dbname: "{{ env_var('POSTGRES_DB') }}"
+      schema: staging
+      threads: 4

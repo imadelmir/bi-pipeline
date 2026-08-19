@@ -1,0 +1,133 @@
+version: 2
+
+models:
+  - name: stg_vendite_classificate
+    description: >
+      Tutte le righe di `raw`, tipizzate e con un giudizio: `motivo_esclusione`
+      è nullo per le righe buone e dice il perché per quelle scartate.
+      Nessuna riga viene tolta qui — è il modello da cui nascono sia
+      `stg_vendite` sia `stg_esclusioni`, così il giudizio è uno solo.
+    columns:
+      - name: numero_fattura
+        description: Numero di fattura, ripulito dagli spazi. Dimensione degenere.
+        data_tests: [not_null]
+      - name: codice_prodotto
+        description: Codice prodotto, ripulito dagli spazi.
+        data_tests: [not_null]
+      - name: descrizione_grezza
+        description: La descrizione come sta nella sorgente, spazi e minuscole comprese.
+      - name: descrizione_normalizzata
+        description: Descrizione senza spazi doppi e in maiuscolo. Nulla se assente.
+      - name: quantita
+        description: Pezzi. Negativa sui resi e sulle rettifiche di magazzino.
+        data_tests: [not_null]
+      - name: data_ora
+        description: Data e ora della fattura.
+        data_tests: [not_null]
+      - name: prezzo_unitario
+        description: Prezzo unitario in sterline.
+        data_tests: [not_null]
+      - name: codice_cliente
+        description: Codice cliente. Nullo in circa un quarto delle righe.
+      - name: paese
+        description: Paese del cliente, ancora nella forma della sorgente.
+        data_tests: [not_null]
+      - name: is_reso
+        description: Vero se il numero di fattura inizia per C.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+                quote: false
+      - name: motivo_esclusione
+        description: >
+          Perché la riga non entra in `stg_vendite`. Nullo per le righe tenute.
+          I motivi si escludono a vicenda: una riga che ne soddisfa più di uno
+          viene contata sul primo in ordine di priorità.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values:
+                  - codice di servizio
+                  - prezzo non positivo
+                  - duplicato esatto
+
+  - name: stg_vendite
+    description: >
+      Le righe di vendita pulite: tipizzate, deduplicate, senza codici di
+      servizio né prezzi non positivi, con una descrizione sola per prodotto.
+      I resi restano, marcati. Le righe senza cliente restano, con il codice
+      cliente nullo.
+    columns:
+      - name: numero_fattura
+        description: Numero di fattura. Se inizia per C è un reso.
+        data_tests: [not_null]
+      - name: codice_prodotto
+        description: Codice prodotto.
+        data_tests: [not_null]
+      - name: descrizione
+        description: >
+          La descrizione più frequente per quel codice. Nulla se il codice non
+          ne ha mai avuta una: inventarla qui vorrebbe dire nasconderlo.
+      - name: quantita
+        description: Pezzi. Negativa sui resi.
+        data_tests: [not_null]
+      - name: data_ora
+        description: Data e ora della fattura.
+        data_tests: [not_null]
+      - name: prezzo_unitario
+        description: Prezzo unitario in sterline, sempre maggiore di zero.
+        data_tests: [not_null]
+      - name: valore
+        description: >
+          `quantita * prezzo_unitario`, arrotondato. Negativo sui resi: è la
+          colonna che si somma per il fatturato netto.
+        data_tests: [not_null]
+      - name: codice_cliente
+        description: Codice cliente. Nullo quando la vendita non è attribuibile.
+      - name: paese
+        description: Paese del cliente. La normalizzazione avviene in `dim_paese`.
+        data_tests: [not_null]
+      - name: is_reso
+        description: Vero se il numero di fattura inizia per C.
+        data_tests: [not_null]
+
+  - name: stg_esclusioni
+    description: >
+      La contabilità delle esclusioni: quante righe per ogni motivo, più la
+      riga `tenute`. La somma della colonna `righe` deve dare esattamente le
+      righe della sorgente — è la base del test di quadratura (M5-T7).
+    columns:
+      - name: motivo
+        description: Il motivo dell'esclusione, oppure «tenute».
+        data_tests:
+          - not_null
+          - unique
+      - name: e_tenuta
+        description: Vero sulla riga che conta le righe rimaste.
+        data_tests: [not_null]
+      - name: righe
+        description: Quante righe.
+        data_tests: [not_null]
+      - name: valore
+        description: Quanto valore se ne va con quelle righe.
+
+seeds:
+  - name: codici_di_servizio
+    description: >
+      I codici che non sono prodotti: spedizione, commissioni, rettifiche,
+      sconti, campioni, righe di prova, buoni regalo. L'elenco sta qui e non
+      nel SQL perché è un dato, non una regola: si aggiorna aggiungendo una
+      riga, senza toccare un modello.
+    columns:
+      - name: codice
+        description: Il codice come compare nella sorgente.
+        data_tests:
+          - not_null
+          - unique
+      - name: descrizione
+        description: A cosa corrisponde, per chi legge la seed fra un anno.
+      - name: motivo
+        description: Perché non è un prodotto.
+        data_tests: [not_null]

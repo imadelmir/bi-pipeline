@@ -1,0 +1,48 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    description: >
+      Lo strato di atterraggio, scritto da `ingestion/load.py` con COPY.
+      Tutte le colonne sono testo e nessuna riga è stata filtrata: quello che
+      c'era nel file c'è anche qui.
+
+    # Controllo di freschezza (M3-T2, poi M5-T8).
+    #
+    # Su dati storici la sorgente non cambierà mai, quindi il controllo
+    # segnalerà sempre lo stesso ritardo. Resta acceso lo stesso: il giorno che
+    # il caricamento diventasse periodico, il meccanismo è già al suo posto e
+    # nessuno deve ricordarsi di accenderlo.
+    loaded_at_field: caricato_il
+    freshness:
+      warn_after: { count: 24, period: hour }
+      error_after: { count: 48, period: hour }
+
+    tables:
+      - name: vendite
+        description: Una riga per riga di fattura, come arriva dal CSV.
+        columns:
+          - name: invoice
+            description: Numero di fattura. Se inizia per C è un reso.
+          - name: stock_code
+            description: Codice prodotto. Alcuni sono codici di servizio.
+          - name: description
+            description: Descrizione, testo libero digitato a mano.
+          - name: quantity
+            description: Pezzi. Negativa sui resi e sulle rettifiche.
+          - name: invoice_date
+            description: Data e ora della fattura.
+          - name: price
+            description: Prezzo unitario in sterline.
+          - name: customer_id
+            description: Codice cliente. Manca nel 22,77 % delle righe.
+          - name: country
+            description: Paese del cliente, testo libero.
+          - name: caricato_il
+            description: Quando la riga è entrata in raw.
+          - name: file_origine
+            description: Il CSV da cui proviene. È la chiave del ricaricamento.
+
+      - name: registro_caricamenti
+        description: Un record per ogni tentativo di caricamento, riuscito o no.

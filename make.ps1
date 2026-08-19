@@ -21,6 +21,18 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# dbt non legge .env da solo: le variabili gli arrivano dall'ambiente.
+if (Test-Path '.env') {
+    foreach ($riga in Get-Content '.env') {
+        if ($riga -match '^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$') {
+            Set-Item -Path ("env:" + $Matches[1]) -Value $Matches[2].Trim()
+        }
+    }
+}
+$env:DBT_PROJECT_DIR = 'dbt'
+$env:DBT_PROFILES_DIR = 'dbt'
+if (-not $env:TARGET) { $env:TARGET = 'dev' }
+
 # Le azioni: stessa riga di comando del Makefile, stessa descrizione.
 $comandi = [ordered]@{
     'up'     = @{ descrizione = 'Alza i servizi Docker e aspetta che il database risponda'
@@ -42,6 +54,20 @@ $comandi = [ordered]@{
                       uv run --frozen ruff format .
                       uv run --frozen ruff check --fix .
                   } }
+    'build'  = @{ descrizione = 'dbt build: modelli e test insieme'
+                  azione      = {
+                      uv run --frozen python scripts/esegui_dbt.py seed --target $env:TARGET
+                      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                      uv run --frozen python scripts/esegui_dbt.py build --target $env:TARGET
+                  } }
+    'test'   = @{ descrizione = 'Solo i test, senza ricostruire i modelli'
+                  azione      = { uv run --frozen python scripts/esegui_dbt.py test --target $env:TARGET } }
+    'docs'   = @{ descrizione = 'Genera e apre la documentazione dbt con il lineage'
+                  azione      = {
+                      uv run --frozen python scripts/esegui_dbt.py docs generate --target $env:TARGET
+                      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                      uv run --frozen python scripts/esegui_dbt.py docs serve --target $env:TARGET
+                  } }
     'ingest' = @{ descrizione = 'Scarica, verifica il checksum e carica in raw con COPY'
                   azione      = {
                       uv run --frozen python -m ingestion.sources.online_retail
@@ -52,12 +78,6 @@ $comandi = [ordered]@{
                   azione      = { uv run --frozen python -m ingestion.profilazione } }
     'confronto' = @{ descrizione = 'Cronometra COPY contro pandas.to_sql su centomila righe'
                   azione      = { uv run --frozen python -m ingestion.confronto_copy } }
-    'build'  = @{ descrizione = 'dbt build: modelli e test insieme'
-                  azione      = { Write-Host 'Non ancora implementato: arriva con M3-T1 (dbt init).'; exit 1 } }
-    'test'   = @{ descrizione = 'Solo i test dbt, senza ricostruire i modelli'
-                  azione      = { Write-Host 'Non ancora implementato: arriva con M5-T1.'; exit 1 } }
-    'docs'   = @{ descrizione = 'Genera e apre la documentazione dbt con il lineage'
-                  azione      = { Write-Host 'Non ancora implementato: arriva con M5-T9.'; exit 1 } }
     'flow'   = @{ descrizione = 'Il flusso Prefect completo, dall inizio alla fine'
                   azione      = { Write-Host 'Non ancora implementato: arriva con M6-T1.'; exit 1 } }
 }

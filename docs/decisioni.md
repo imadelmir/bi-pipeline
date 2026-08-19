@@ -195,3 +195,64 @@ Verificato con un CSV malformato: zero righe entrate, e nel registro un record
 invece, il record resta `in corso` — ed è giusto così: è la firma di un
 processo morto, e ripulirla in automatico significherebbe cancellare l'unica
 prova che qualcosa è andato storto.
+
+---
+
+## D9 — I motivi di esclusione hanno una priorità
+
+**Milestone:** M3-T6, M3-T7, M3-T8, M3-T10
+
+Una riga esclusa viene contata su **un solo** motivo, il primo che la coglie:
+codice di servizio, poi prezzo non positivo, poi duplicato esatto.
+
+**Alternativa scartata:** contare ogni condizione separatamente.
+
+**Perché:** le condizioni si sovrappongono — un codice di servizio può avere
+prezzo zero ed essere anche duplicato. Contandolo tre volte, la somma delle
+esclusioni supererebbe le righe escluse e la quadratura di M5-T7 non tornerebbe
+mai. Con la priorità ogni riga finisce in una casella sola e la somma torna al
+pezzo.
+
+**Conseguenza da ricordare:** i numeri di `stg_esclusioni` non coincidono con
+quelli di `docs/profilazione.md`, che contava le condizioni una per una. Non è
+un errore: 6.202 righe hanno prezzo zero, ma 6.168 sono escluse *per* il prezzo
+— le altre erano già uscite come codici di servizio.
+
+---
+
+## D10 — La deduplica tiene la riga che vale, e lo fa sempre allo stesso modo
+
+**Milestone:** M3-T8
+
+`row_number()` ordina per prezzo decrescente, con descrizione, cliente e file
+d'origine come spareggio.
+
+**Alternativa scartata:** ordinare per data di caricamento, che era la prima
+versione.
+
+**Perché:** la chiave di deduplica del piano — fattura, prodotto, quantità,
+istante — non comprende il prezzo. Dentro un gruppo possono quindi finire righe
+con prezzi diversi, tipicamente una a prezzo pieno e una a zero. Con
+`order by caricato_il`, identico per tutte le righe della stessa transazione,
+la scelta di quale riga tenere la faceva il database: se toccava a quella a
+prezzo zero, veniva scartata dal filtro sui prezzi e la gemella valida spariva
+come duplicato.
+
+Il conteggio della stessa vista cambiava fra un'esecuzione e l'altra:
+1.021.131, poi 1.021.134, poi 1.021.137. Un modello non deterministico mente a
+caso, ed è il genere di errore che in un cruscotto non si nota mai.
+
+---
+
+## D11 — `dev` e `prod` scrivono in schemi diversi
+
+**Milestone:** M3-T3
+
+`prod` scrive in `staging` e `marts`; `dev` in `staging_dev` e `marts_dev`.
+
+**Alternativa scartata:** stesso schema per entrambi, come veniva naturale.
+
+**Perché:** con un nome solo, un `dbt build --target dev` riscrive le viste che
+Metabase sta leggendo — e le riscrive con un trimestre di dati invece di due
+anni. Il cruscotto mostrerebbe numeri sbagliati senza che nessuno abbia toccato
+niente, e per giunta nel momento in cui si sta lavorando ad altro.
