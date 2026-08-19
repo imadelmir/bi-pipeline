@@ -1,0 +1,63 @@
+[project]
+name = "bi-pipeline"
+version = "0.1.0"
+description = "Pipeline ELT su Online Retail II: da un file .xlsx a uno schema a stella testato e a cinque indicatori"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { file = "LICENSE" }
+authors = [{ name = "Imad El Mir" }]
+
+# Versioni fissate con ==, non con intervalli (M1-T4).
+# Un intervallo significa che due macchine, o la stessa macchina a due mesi di
+# distanza, installano cose diverse: il giorno che qualcosa si rompe non si sa
+# se è colpa del codice o di un aggiornamento silenzioso. Le versioni si alzano
+# di proposito, con un commit che lo dice.
+dependencies = [
+    "pandas==3.0.5",
+    "openpyxl==3.1.5",
+    "psycopg[binary]==3.3.4",
+    "dbt-postgres==1.11.0",
+    "prefect==3.8.3",
+    "python-dotenv==1.2.3",
+]
+
+[dependency-groups]
+dev = [
+    "ruff==0.16.3",
+    "mypy==2.3.1",
+    "pandas-stubs==3.0.5.260730",
+    "types-openpyxl==3.1.5.20260807",
+]
+
+[tool.uv]
+# Il progetto non è una libreria da installare: è un insieme di script e
+# modelli. Senza questo, uv tenterebbe di costruire un pacchetto.
+package = false
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+# ruff formatta anche il Markdown. Il piano e il backlog sono copie dei
+# documenti sorgente del progetto: devono restare identici all'originale,
+# altrimenti confrontarli con la versione fuori dal repository diventa
+# impossibile.
+extend-exclude = ["docs/piano.md", "docs/backlog.md"]
+
+[tool.ruff.lint]
+# E,W pycodestyle · F pyflakes · I import ordinati · B bugbear
+# UP sintassi moderna · SIM semplificazioni · RUF regole di ruff
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+# Modalità stretta sui moduli di ingestione (M1-T5): sono quelli che toccano
+# dati esterni, dove un tipo sbagliato non esplode subito ma sporca il database.
+strict = true
+warn_unreachable = true
+show_error_codes = true
+files = ["ingestion", "orchestration"]
+
+[[tool.mypy.overrides]]
+# Prefect espone decoratori dinamici che mypy non sa seguire fino in fondo.
+module = ["prefect.*"]
+ignore_missing_imports = true

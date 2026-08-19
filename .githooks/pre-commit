@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+# Controlli prima di ogni commit (M1-T5).
+#
+# Gira sull'intero albero e non solo sui file nello stage: sono controlli che
+# durano meno di dieci secondi, e limitarli ai file toccati lascerebbe passare
+# la rottura che un file modificato provoca in un altro — il caso tipico di
+# mypy, dove cambiare una firma rompe chi la chiama.
+#
+# Gli strumenti si invocano con `uv run`: sono le versioni bloccate in
+# pyproject.toml, le stesse che gira la CI. Nessuna seconda lista di versioni
+# da tenere allineata.
+#
+# Attivazione dopo il clone:  git config core.hooksPath .githooks
+# Salto motivato e volontario: git commit --no-verify
+
+set -e
+
+if ! command -v uv >/dev/null 2>&1; then
+    echo "pre-commit: uv non è installato — vedi il README." >&2
+    exit 1
+fi
+
+echo "pre-commit: formattazione (ruff format --check)"
+uv run --frozen ruff format --check .
+
+echo "pre-commit: lint (ruff check)"
+uv run --frozen ruff check .
+
+echo "pre-commit: tipi (mypy --strict)"
+uv run --frozen mypy
+
+echo "pre-commit: tutto a posto."

@@ -1,0 +1,20 @@
+# Normalizza i fine riga: nel repository si salva sempre LF,
+# nella working copy Windows usa CRLF. Elimina i diff fantasma
+# quando lo stesso repo viene aperto da sistemi operativi diversi.
+* text=auto eol=lf
+
+# Gli script eseguiti dentro i container e gli hook di git devono restare LF
+# anche sulla working copy: con CRLF la shell non trova l'interprete.
+*.sh text eol=lf
+.githooks/* text eol=lf
+
+# File binari: mai toccati da git
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.pdf   binary
+*.xlsx  binary
+
+# Lockfile: generato, escluso dalle statistiche del linguaggio
+uv.lock linguist-generated=true
