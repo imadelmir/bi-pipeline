@@ -23,7 +23,6 @@ a un database funzionante senza dover indovinare niente.
 | --- | --- |
 | `README.md` | Cosa fa il progetto, la sorgente con l'attribuzione, i prerequisiti, i comandi |
 | `LICENSE` | MIT sul codice, con l'attribuzione CC BY dei dati |
-| `CLAUDE.md` | Requisiti, architettura, convenzioni e vincoli in un file solo |
 | `.gitignore` | Fuori `.env`, `profiles.yml` e il file sorgente da 43,5 MB |
 | `.gitattributes` | Fine riga LF nel repository, CRLF nella copia di lavoro |
 | `pyproject.toml` | Dipendenze con versioni fissate, configurazione di ruff e mypy |
