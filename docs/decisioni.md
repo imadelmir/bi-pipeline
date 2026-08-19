@@ -153,3 +153,45 @@ giornata a cercare l'errore nei modelli invece che nel file.
 **Se un giorno non corrisponde più:** non si aggiorna la costante e via. Si
 guarda cosa è cambiato, perché ogni numero scritto nelle relazioni di milestone
 si riferisce al file vecchio.
+
+---
+
+## D7 — Il campo vuoto diventa `NULL`, non stringa vuota
+
+**Milestone:** M2-T5
+
+Nel passaggio dal CSV a `raw.vendite`, un campo vuoto entra come `NULL`.
+
+**Alternativa scartata:** caricare `''` e lasciare che sia staging a decidere.
+
+**Perché:** «campo vuoto» nel CSV significa *qui non c'è niente*, ed è
+esattamente ciò che `NULL` rappresenta in SQL. Tenere la stringa vuota
+costringerebbe ogni modello di staging a scrivere `nullif(colonna, '')` su ogni
+colonna, e basta dimenticarlo una volta perché un conteggio di valori mancanti
+torni zero mentre i valori mancanti ci sono — 243.007, per la precisione.
+
+Non è una violazione della regola «raw non trasforma»: nessun valore viene
+cambiato, corretto o filtrato. Cambia solo il modo di rappresentare un'assenza,
+e si sceglie quello che il database capisce.
+
+---
+
+## D8 — Il registro dei caricamenti scrive su una connessione propria
+
+**Milestone:** M2-T7
+
+`ingestion/registry.py` apre una connessione separata, in autocommit, invece di
+usare quella del caricamento.
+
+**Alternativa scartata:** scrivere il registro nella stessa transazione dei dati.
+
+**Perché:** il registro deve raccontare anche — soprattutto — i caricamenti che
+falliscono. Dentro la stessa transazione, il rollback che annulla i dati
+annullerebbe pure la riga che dice «è fallito»: resterebbe una tabella vuota e
+nessuna traccia del perché.
+
+Verificato con un CSV malformato: zero righe entrate, e nel registro un record
+`fallito` con il messaggio di PostgreSQL. Se il processo viene ucciso di netto,
+invece, il record resta `in corso` — ed è giusto così: è la firma di un
+processo morto, e ripulirla in automatico significherebbe cancellare l'unica
+prova che qualcosa è andato storto.
