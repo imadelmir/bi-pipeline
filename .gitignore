@@ -1,0 +1,48 @@
+# --- Segreti -----------------------------------------------------------------
+# Il .env vero non entra mai in git: le credenziali del database vivono solo
+# sulla macchina. In repository c'è .env.example, con gli stessi nomi e valori
+# finti.
+.env
+.env.*
+!.env.example
+
+# Il profilo dbt contiene host, utente e password del database.
+dbt/profiles.yml
+profiles.yml
+
+# --- Dati --------------------------------------------------------------------
+# Il file sorgente pesa 43,5 MB: in git resterebbe per sempre, anche dopo un
+# rm. Si scarica con `make ingest`, e il repository ne conserva solo il
+# checksum SHA-256 atteso.
+data/
+*.xlsx
+*.xls
+*.csv
+!dbt/seeds/*.csv
+
+# --- Python ------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# --- dbt ---------------------------------------------------------------------
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+logs/
+
+# --- Prefect -----------------------------------------------------------------
+.prefect/
+
+# --- Sistema operativo ed editor ---------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/settings.json
