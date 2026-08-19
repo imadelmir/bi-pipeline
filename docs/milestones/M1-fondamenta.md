@@ -1,11 +1,9 @@
 # M1 — Fondamenta
 
-Lavoro locale svolto il 19/08/2026 · commit iniziale `d949622` · commit finale
-`46c0866`
+Chiusa il 19/08/2026 · commit iniziale `d949622` · commit finale `f0e49ec`
 
-> **Non ancora chiusa.** Nove task su undici sono fatti e verificati. Restano la
-> parte remota di M1-T2 (repository pubblico su GitHub) e M1-T10 (badge verde),
-> che dipendono da una decisione dell'autore: vedi la sezione 6.
+Undici task su undici. Il repository è pubblico su
+<https://github.com/imadelmir/bi-pipeline> e la CI è verde.
 
 ## 1. Cosa è stato costruito
 
@@ -90,6 +88,7 @@ li riempirà, poi escono con 1.
 | Versione del database | PostgreSQL 16.14 (Debian), UTF8, collazione C | `select version()` dentro il contenitore |
 | `make check` (ruff format + ruff check + mypy) | 2 s | Sull'albero attuale |
 | Commit con codice mal formattato | rifiutato, uscita `1` | Prova descritta sotto |
+| CI su GitHub Actions | verde in 17 s | Esecuzione `32304636307` |
 
 ## 5. Problemi incontrati
 
@@ -116,6 +115,13 @@ Rifatto con `git reset --soft` e tre commit separati, uno per gruppo di task: la
 relazione di milestone si scrive leggendo `git log`, e un log impreciso costa più
 tempo di quanto ne faccia risparmiare.
 
+**La prima esecuzione della CI è fallita in 5 secondi.**
+`astral-sh/setup-uv@v10` non esiste: quel progetto pubblica solo le versioni
+esatte, senza il tag mobile di maggiore che quasi tutte le action offrono.
+Risolto fissando entrambe le action alla versione esatta — che è poi la stessa
+regola già scelta per le dipendenze Python e per l'immagine del database (D4).
+Vale la pena ricordarlo: un tag di maggiore non è garantito, va verificato.
+
 **Docker Desktop non era in esecuzione**, e `docker info` falliva con un errore
 sulla named pipe che non dice niente a chi non lo ha già visto. Vale la pena
 saperlo prima di M2: se `make up` si lamenta del daemon, il problema è
@@ -123,17 +129,9 @@ l'applicazione spenta, non il file compose.
 
 ## 6. Cosa resta aperto
 
-- **M1-T2, parte remota — il repository pubblico su GitHub non esiste ancora.**
-  L'account autenticato su questa macchina è `AVENA50`, ma i link del case study
-  di Football Analytics nel portfolio puntano a `imadelmir`. Serve la decisione
-  dell'autore su quale usare, e se il repository debba nascere pubblico subito o
-  privato fino a M8.
-- **M1-T10 — il badge della CI.** Il workflow è scritto ma non è mai girato:
-  senza remoto non può. Il badge va aggiunto al README dopo la prima esecuzione
-  verde, non prima.
-- **Le versioni delle action di GitHub** (`actions/checkout@v7`,
-  `astral-sh/setup-uv@v10`) sono fissate al maggiore, non all'esatto: è la
-  convenzione già usata nel repository del portfolio.
+- **La CI non esegue ancora nessun test**, perché non esistono modelli da
+  testare: `dbt build` su un PostgreSQL di servizio entra in M5-T10. Finché non
+  c'è, il verde della CI dice solo che il codice è formattato, pulito e tipato.
 - **`make ingest`, `build`, `test`, `docs`, `flow` sono segnaposto** che escono
   con errore. È voluto, e ognuno dichiara il task che lo riempirà.
 - **Nessun dato è ancora stato scaricato.** Le 1.067.371 righe sono un numero
