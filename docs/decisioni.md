@@ -127,3 +127,29 @@ Il costo è reale: due file da tenere allineati. È accettabile perché ogni
 comando è una riga sola, ed è dichiarato in testa a entrambi i file. Se un
 giorno i comandi diventassero script veri e propri, la logica passerebbe negli
 script e i due file tornerebbero a essere due elenchi di nomi.
+
+---
+
+## D6 — Il checksum atteso è misurato da noi, non pubblicato da UCI
+
+**Milestone:** M2-T1
+
+`ingestion/sources/online_retail.py` confronta lo SHA-256 dell'Excel con un
+valore costante nel codice:
+`bcbe73b35f5b7babf197fb0cb983a11f5d9ff929078d4aa53d171b1f2df2e980`, misurato al
+primo scaricamento del 19/08/2026.
+
+**Cosa garantisce e cosa no.** UCI non pubblica un checksum ufficiale del
+dataset. Quel valore quindi non dice «il file è quello che UCI ha voluto
+pubblicare»: dice «il file è identico a quello su cui sono stati misurati tutti
+i numeri di questo progetto». È una garanzia di riproducibilità, non di
+autenticità, e vale la pena non confonderle.
+
+**Perché serve lo stesso.** Uno scaricamento troncato o una sorgente aggiornata
+in silenzio produrrebbero numeri diversi senza alcun segnale: il conteggio
+righe cambierebbe, la quadratura di M5-T7 fallirebbe, e si perderebbe mezza
+giornata a cercare l'errore nei modelli invece che nel file.
+
+**Se un giorno non corrisponde più:** non si aggiorna la costante e via. Si
+guarda cosa è cambiato, perché ogni numero scritto nelle relazioni di milestone
+si riferisce al file vecchio.
