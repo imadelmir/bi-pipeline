@@ -1,0 +1,45 @@
+# Servizi locali del progetto (M1-T6).
+#
+# Per ora solo PostgreSQL: Metabase entra in M7, quando c'è uno schema marts da
+# mostrargli (vedi docs/decisioni.md, D3).
+
+services:
+  db:
+    # Versione fissata al minore, come le dipendenze Python: si alza di
+    # proposito, con un commit che lo dice.
+    image: postgres:16.14
+    container_name: bi-pipeline-db
+    restart: unless-stopped
+
+    # Le credenziali non stanno qui dentro: arrivano da .env, che non è in git.
+    # I default dopo `:-` valgono solo per la porta, che non è un segreto.
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      # Il database di un progetto BI non fa che ordinare e raggruppare: la
+      # collazione decide l'ordine, e cambiarla a metà strada cambierebbe i
+      # risultati. Meglio dichiararla una volta.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+    volumes:
+      # Volume con nome, non una cartella del progetto: i dati sopravvivono a
+      # `docker compose down` e non finiscono mai per sbaglio dentro git.
+      - postgres_data:/var/lib/postgresql/data
+
+    # Senza healthcheck, `docker compose up -d` torna appena il contenitore
+    # parte — non appena il database accetta connessioni. Il caricamento
+    # lanciato subito dopo fallirebbe una volta su tre.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  postgres_data:
+    name: bi-pipeline-postgres-data
