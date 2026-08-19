@@ -6,7 +6,8 @@ rilanciare uno per uno senza sporcare niente.
 
 [![CI](https://github.com/imadelmir/bi-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/imadelmir/bi-pipeline/actions/workflows/ci.yml)
 
-> **Stato:** in costruzione — M1 (Fondamenta) chiusa, si passa a M2 (Ingestione).
+> **Stato:** in costruzione — M1 (Fondamenta) e M2 (Ingestione) chiuse,
+> si passa a M3 (Staging).
 > Il case study completo arriva a M8.
 
 ---
@@ -78,6 +79,8 @@ PowerShell equivalente: `.\make.ps1 up`, `.\make.ps1 ingest`, e così via.
 | `make check` | Formattazione, lint e tipi: gli stessi controlli della CI |
 | `make format` | Formatta e corregge quello che si può correggere da solo |
 | `make ingest` | Scarica, verifica il checksum e carica in `raw` con `COPY` |
+| `make profila` | Riconta lo sporco della sorgente e riscrive `docs/profilazione.md` |
+| `make confronto` | Cronometra `COPY` contro `pandas.to_sql` su centomila righe |
 | `make build` | `dbt build`: modelli e test insieme |
 | `make test` | Solo i test, senza ricostruire i modelli |
 | `make docs` | Genera e apre la documentazione dbt con il lineage |

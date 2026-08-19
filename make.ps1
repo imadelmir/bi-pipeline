@@ -43,7 +43,15 @@ $comandi = [ordered]@{
                       uv run --frozen ruff check --fix .
                   } }
     'ingest' = @{ descrizione = 'Scarica, verifica il checksum e carica in raw con COPY'
-                  azione      = { Write-Host 'Non ancora implementato: arriva con M2-T1 (scaricamento) e M2-T5 (COPY).'; exit 1 } }
+                  azione      = {
+                      uv run --frozen python -m ingestion.sources.online_retail
+                      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                      uv run --frozen python -m ingestion.load
+                  } }
+    'profila' = @{ descrizione = 'Riconta lo sporco della sorgente e riscrive docs/profilazione.md'
+                  azione      = { uv run --frozen python -m ingestion.profilazione } }
+    'confronto' = @{ descrizione = 'Cronometra COPY contro pandas.to_sql su centomila righe'
+                  azione      = { uv run --frozen python -m ingestion.confronto_copy } }
     'build'  = @{ descrizione = 'dbt build: modelli e test insieme'
                   azione      = { Write-Host 'Non ancora implementato: arriva con M3-T1 (dbt init).'; exit 1 } }
     'test'   = @{ descrizione = 'Solo i test dbt, senza ricostruire i modelli'

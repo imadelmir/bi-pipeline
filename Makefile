@@ -10,7 +10,7 @@ COMPOSE := docker compose
 UV      := uv run --frozen
 
 .DEFAULT_GOAL := help
-.PHONY: help up down psql ingest build test docs flow check format
+.PHONY: help up down psql ingest profila confronto build test docs flow check format
 
 help: ## Elenca i comandi disponibili
 	@echo "Comandi disponibili:"
@@ -47,7 +47,14 @@ format: ## Formatta e corregge quello che si può correggere da solo
 # non prova nulla.
 
 ingest: ## Scarica, verifica il checksum e carica in raw con COPY
-	@echo "Non ancora implementato: arriva con M2-T1 (scaricamento) e M2-T5 (COPY)." && exit 1
+	$(UV) python -m ingestion.sources.online_retail
+	$(UV) python -m ingestion.load
+
+profila: ## Riconta lo sporco della sorgente e riscrive docs/profilazione.md
+	$(UV) python -m ingestion.profilazione
+
+confronto: ## Cronometra COPY contro pandas.to_sql su centomila righe
+	$(UV) python -m ingestion.confronto_copy
 
 build: ## dbt build: modelli e test insieme
 	@echo "Non ancora implementato: arriva con M3-T1 (dbt init)." && exit 1

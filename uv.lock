@@ -223,6 +223,7 @@ dev = [
     { name = "mypy" },
     { name = "pandas-stubs" },
     { name = "ruff" },
+    { name = "sqlalchemy" },
     { name = "types-openpyxl" },
 ]
 
@@ -241,6 +242,7 @@ dev = [
     { name = "mypy", specifier = "==2.3.1" },
     { name = "pandas-stubs", specifier = "==3.0.5.260730" },
     { name = "ruff", specifier = "==0.16.3" },
+    { name = "sqlalchemy", specifier = "==2.0.52" },
     { name = "types-openpyxl", specifier = "==3.1.5.20260807" },
 ]
 
