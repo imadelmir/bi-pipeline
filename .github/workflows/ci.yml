@@ -25,16 +25,20 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Le action sono fissate alla versione esatta, come le dipendenze Python
+# (docs/decisioni.md, D4). setup-uv non pubblica un tag mobile di maggiore:
+# `@v10` non esiste, e la prima esecuzione della CI è fallita proprio lì.
+
 jobs:
   qualita:
     name: Formato, lint e tipi
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
 
       - name: Installa uv
-        uses: astral-sh/setup-uv@v10
+        uses: astral-sh/setup-uv@v10.0.1
         with:
           # La cache si invalida quando cambia il lockfile, che è l'unica cosa
           # che cambia davvero le dipendenze installate.
