@@ -417,3 +417,32 @@ sbagliati in eccesso, senza che nulla lo segnali.
 **Conseguenza:** ogni domanda deve filtrare `livello`. Un test dbt pretende che
 il livello «tutto» abbia una riga sola, perché è l'errore più facile da
 introdurre aggiungendo un raggruppamento.
+
+---
+
+## D19 — Nessuna demo online, e il motivo sta nel README
+
+**Milestone:** M8-T4
+
+Il case study non promette un cruscotto da visitare. Al suo posto ci sono gli
+screenshot, il repository e quattro comandi che ricostruiscono tutto.
+
+**Alternative scartate:** pubblicare il database su un piano gratuito, oppure
+pubblicarne una fetta ridotta.
+
+**Perché.** Il database pesa **491 MB**: 272 MB lo schema `raw`, 190 MB i
+`marts`. I piani gratuiti che reggerebbero quella dimensione non offrono un
+motore di interrogazione sempre acceso, e Metabase Cloud non ha un piano
+gratuito: servirebbe una macchina a pagamento per tenere in piedi una demo che
+nessuno interroga.
+
+La fetta ridotta — l'ultimo trimestre, circa 200.000 righe e 40 MB — starebbe
+comodamente ovunque. Ma mostrerebbe **numeri diversi da quelli del case
+study**: chi apre la demo dopo aver letto «1.067.371 righe» ne troverebbe
+duecentomila, e o si fida meno di tutto il resto o va spiegato in ogni pagina.
+
+Una promessa che scade fra sei mesi, quando il piano gratuito cambia
+condizioni, vale meno di uno screenshot onesto.
+
+**Conseguenza:** il README dichiara la scelta e il peso del database, invece di
+tacere sull'assenza della demo.

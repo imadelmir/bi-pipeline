@@ -1,0 +1,7 @@
+Gli screenshot dei cruscotti finiscono qui.
+
+Nomi attesi dal README e dal case study:
+
+  cruscotto-1-andamento.png
+  cruscotto-2-prodotti-clienti.png
+  cruscotto-3-geografia.png
