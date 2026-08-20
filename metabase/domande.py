@@ -286,9 +286,12 @@ order by ordine
     # --- cruscotto 2: prodotti e clienti (M7-T5) ---------------------------
     Domanda(
         chiave="primi_prodotti",
-        nome="Primi venti prodotti per valore",
+        nome="Primi dodici prodotti per valore",
         descrizione="Barre orizzontali e non verticali: i nomi dei prodotti "
-        "sono lunghi, e in verticale non si leggono.",
+        "sono lunghi, e in verticale non si leggono. Dodici e non venti perché "
+        "Metabase raggruppa da sé le barre che non entrano nell'altezza della "
+        "scheda in una voce «Altro»: con venti prodotti quella voce diventava "
+        "la seconda barra più lunga del grafico e non diceva niente.",
         sql="""
 select
     initcap(p.descrizione) as "Prodotto",
@@ -299,7 +302,7 @@ join marts.dim_data as d on a.data_key = d.data_key
 where d.anno = {{anno}}
 group by p.descrizione
 order by sum(a.valore_netto) desc
-limit 20
+limit 12
 """,
         display="row",
         impostazioni={
@@ -561,7 +564,10 @@ CRUSCOTTI: list[Cruscotto] = [
             ),
             Scheda(5, 0, 16, 7, chiave="fatturato_per_mese"),
             # La tabella ha tre righe: alta sette lasciava mezza scheda vuota.
-            Scheda(5, 16, 8, 4, chiave="lordo_resi_netto"),
+            # Tre righe più intestazione e piè di pagina: con quattro
+            # unità di griglia l'ultima riga finiva sotto una barra di
+            # scorrimento.
+            Scheda(5, 16, 8, 5, chiave="lordo_resi_netto"),
             Scheda(
                 12,
                 0,
@@ -609,17 +615,18 @@ CRUSCOTTI: list[Cruscotto] = [
         schede=[
             Scheda(0, 0, 24, 1, titolo=True, testo="Dove sono i clienti"),
             Scheda(1, 0, 14, 9, chiave="fatturato_per_paese"),
-            Scheda(1, 14, 10, 4, chiave="interno_contro_estero"),
-            Scheda(5, 14, 10, 4, chiave="scheda_italia"),
+            Scheda(1, 14, 10, 5, chiave="interno_contro_estero"),
+            Scheda(6, 14, 10, 4, chiave="scheda_italia"),
             Scheda(
-                10,
+                11,
                 0,
                 24,
                 4,
                 testo="**Il Regno Unito non è nella classifica, ed è una "
                 "scelta.** Vale l'84 % del fatturato: lasciandolo dentro, la "
                 "sua barra arriva a fondo pagina e tutte le altre diventano "
-                "trattini. Il suo peso si legge nella barra impilata a destra.\n\n"
+                "trattini. Il suo peso si legge nella tabella qui a destra, che "
+                "è il posto giusto per una proporzione.\n\n"
                 "La colonna del paese nella sorgente è testo libero e contiene "
                 "voci che paesi non sono — `Unspecified`, `European Community`, "
                 "`Channel Islands`, `EIRE` per l'Irlanda. La normalizzazione "

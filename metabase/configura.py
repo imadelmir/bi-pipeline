@@ -87,7 +87,13 @@ def _corpo_domanda(domanda: Domanda, id_database: int) -> dict[str, Any]:
 
 
 def sincronizza_domande(mb: Metabase, id_database: int) -> dict[str, int]:
-    """Crea o aggiorna ogni domanda. Restituisce chiave → id."""
+    """Crea o aggiorna ogni domanda, e archivia quelle che non esistono più.
+
+    Le domande si riconoscono dal nome. Rinominarne una nel codice significa
+    quindi crearne una nuova: senza l'archiviazione, la vecchia resterebbe
+    nell'elenco per sempre, con lo stesso aspetto di quelle buone e dati che
+    nessuno aggiorna più.
+    """
     esistenti = {c["name"]: c for c in mb.get("/api/card")}
     identificativi: dict[str, int] = {}
 
@@ -103,6 +109,12 @@ def sincronizza_domande(mb: Metabase, id_database: int) -> dict[str, int]:
             mb.put(f"/api/card/{gia['id']}", corpo)
             identificativi[domanda.chiave] = int(gia["id"])
             print(f"  aggiornata {domanda.nome}")
+
+    attesi = {d.nome for d in DOMANDE}
+    for nome, carta in esistenti.items():
+        if nome not in attesi and not carta.get("archived"):
+            mb.put(f"/api/card/{carta['id']}", {"archived": True})
+            print(f"  archiviata {nome} (non è più fra le domande del progetto)")
 
     return identificativi
 
