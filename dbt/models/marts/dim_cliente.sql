@@ -43,6 +43,22 @@ per_cliente as (
 
 ),
 
+raccordo as (
+
+    -- Il nome normalizzato arriva dalla seed e non da `dim_paese`: una
+    -- dimensione che ne interroga un'altra è un legame che nessuno si aspetta,
+    -- e nel grafo delle dipendenze si nota subito.
+    --
+    -- Senza questo passaggio il cruscotto dei clienti scriveva «Netherlands»
+    -- mentre quello della geografia diceva «Paesi Bassi»: due nomi per lo
+    -- stesso paese, nella stessa dashboard.
+    select
+        paese_sorgente,
+        nome
+    from {{ ref('paesi') }}
+
+),
+
 sconosciuto as (
 
     select
@@ -62,17 +78,18 @@ sconosciuto as (
 noti as (
 
     select
-        row_number() over (order by codice_cliente) as cliente_key,
-        codice_cliente,
-        codice_cliente::text as etichetta,
+        row_number() over (order by c.codice_cliente) as cliente_key,
+        c.codice_cliente,
+        c.codice_cliente::text as etichetta,
         false as is_sconosciuto,
-        prima_fattura,
-        ultima_fattura,
-        ordini,
-        resi,
-        valore_totale,
-        paese_principale
-    from per_cliente
+        c.prima_fattura,
+        c.ultima_fattura,
+        c.ordini,
+        c.resi,
+        c.valore_totale,
+        coalesce(r.nome, c.paese_principale) as paese_principale
+    from per_cliente as c
+    left join raccordo as r on c.paese_principale = r.paese_sorgente
 
 )
 

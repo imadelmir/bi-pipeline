@@ -36,7 +36,7 @@ export DBT_PROFILES_DIR := dbt
 TARGET ?= dev
 
 .DEFAULT_GOAL := help
-.PHONY: help up down psql ingest profila confronto build test docs flow check format
+.PHONY: help up down psql ingest profila confronto build test cruscotti docs flow check format
 
 help: ## Elenca i comandi disponibili
 	@echo "Comandi disponibili:"
@@ -88,6 +88,11 @@ build: ## dbt build: modelli e test insieme (TARGET=dev di default)
 
 test: ## Solo i test, senza ricostruire i modelli
 	$(DBT) test --target $(TARGET)
+
+cruscotti: ## Prepara Metabase e ricostruisce domande e cruscotti
+	$(UV) python -m scripts.utente_metabase
+	$(UV) python -m metabase.prepara
+	$(UV) python -m metabase.configura
 
 docs: ## Genera e apre la documentazione dbt con il lineage
 	$(DBT) docs generate --target $(TARGET)

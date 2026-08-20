@@ -372,3 +372,48 @@ dati che non hanno i problemi per cui è stata scritta significa non verificarla
 Costa 199 secondi a esecuzione, con la sorgente in cache. In cambio, ogni push
 dimostra che la pipeline produce gli stessi numeri su una macchina che non ha
 mai visto il progetto: 1.067.371 → 1.021.137 → 1.021.137.
+
+---
+
+## D17 — I cruscotti si costruiscono da codice, non a clic
+
+**Milestone:** M7-T3, M7-T4, M7-T5, M7-T6, M7-T7
+
+Le quindici domande e i tre cruscotti sono definiti in `metabase/domande.py` e
+creati via API da `metabase/configura.py`. `make cruscotti` li ricostruisce
+identici su un'istanza vuota.
+
+**Alternativa scartata:** disegnarli nell'interfaccia di Metabase, che è il
+modo per cui lo strumento è fatto.
+
+**Perché:** un cruscotto costruito a mano vive su una macchina sola. Non si
+legge in una pull request, non si rifà altrove, e il giorno che qualcuno
+chiede perché un numero è cambiato non c'è niente da guardare. Le stesse tre
+proprietà che il progetto pretende dalle trasformazioni — versionate,
+leggibili, ripetibili — valgono per le pagine che le mostrano.
+
+Il prezzo è reale: l'API di Metabase non è pensata per questo uso e i payload
+delle schede sono verbosi. È un costo che si paga una volta.
+
+---
+
+## D18 — Gli indicatori si calcolano in dbt, a più livelli di aggregazione
+
+**Milestone:** M7-T3
+
+`agg_indicatori_periodo` calcola i cinque indicatori con `grouping sets` su
+cinque livelli: `tutto`, `anno`, `mese`, `paese`, `anno_paese`.
+
+**Alternativa scartata:** una tabella alla grana più fine, lasciando che
+Metabase aggreghi.
+
+**Perché:** due indicatori su cinque non sono additivi. I **clienti attivi**
+sono un conteggio di valori distinti — lo stesso cliente compra a gennaio e a
+marzo, e sommare i mesi lo conta due volte. Lo **scontrino medio** e il **tasso
+di reso** sono rapporti, e il rapporto delle somme non è la somma dei
+rapporti. Un cruscotto che sommasse i valori mensili mostrerebbe numeri
+sbagliati in eccesso, senza che nulla lo segnali.
+
+**Conseguenza:** ogni domanda deve filtrare `livello`. Un test dbt pretende che
+il livello «tutto» abbia una riga sola, perché è l'errore più facile da
+introdurre aggiungendo un raggruppamento.

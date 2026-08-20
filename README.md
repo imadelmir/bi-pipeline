@@ -6,8 +6,8 @@ rilanciare uno per uno senza sporcare niente.
 
 [![CI](https://github.com/imadelmir/bi-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/imadelmir/bi-pipeline/actions/workflows/ci.yml)
 
-> **Stato:** in costruzione — chiuse M1…M6, dalle fondamenta
-> all'orchestrazione. Restano i cruscotti (M7) e la pubblicazione (M8).
+> **Stato:** in costruzione — chiuse M1…M7, dalle fondamenta ai cruscotti.
+> Resta la pubblicazione (M8).
 > Il case study completo arriva a M8.
 
 ---
@@ -73,7 +73,7 @@ PowerShell equivalente: `.\make.ps1 up`, `.\make.ps1 ingest`, e così via.
 
 | Comando | Cosa fa |
 | --- | --- |
-| `make up` | Alza i servizi Docker (PostgreSQL) e aspetta che il database risponda |
+| `make up` | Alza i servizi Docker (PostgreSQL e Metabase) e aspetta che rispondano |
 | `make down` | Li ferma; il volume dei dati resta |
 | `make psql` | Apre `psql` dentro il contenitore — sulla macchina non serve installarlo |
 | `make check` | Formattazione, lint e tipi: gli stessi controlli della CI |
@@ -83,6 +83,7 @@ PowerShell equivalente: `.\make.ps1 up`, `.\make.ps1 ingest`, e così via.
 | `make confronto` | Cronometra `COPY` contro `pandas.to_sql` su centomila righe |
 | `make build` | `dbt build`: modelli e test insieme |
 | `make test` | Solo i test, senza ricostruire i modelli |
+| `make cruscotti` | Prepara Metabase e ricostruisce domande e cruscotti |
 | `make docs` | Genera e apre la documentazione dbt con il lineage |
 | `make flow` | Il flusso Prefect completo |
 
@@ -96,7 +97,7 @@ altri comandi servono quando si vuole rifare un pezzo solo.
 ingestion/      Python: scaricamento, checksum, COPY verso raw
 dbt/            Modelli, test, seed e macro delle trasformazioni
 orchestration/  Il flusso Prefect che mette in fila tutto
-metabase/       Cosa contiene ogni cruscotto e perché
+metabase/       I cruscotti definiti in codice, e cosa contiene ogni pagina
 docs/
 ├── milestones/ Una relazione per milestone, con i numeri misurati
 ├── decisioni.md   Le decisioni tecniche e le alternative scartate

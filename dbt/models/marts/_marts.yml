@@ -289,3 +289,100 @@ seeds:
       - name: nome_festivo
         description: Come si chiama. «(recupero)» quando la festa cadeva di weekend.
         data_tests: [not_null]
+
+  - name: agg_indicatori_giorno
+    description: >
+      Le misure additive aggregate per giorno, paese e prodotto. Serve alle
+      classifiche dei cruscotti: sommare qui costa una frazione di quanto
+      costerebbe sul fatto, e le colonne sono tutte sommabili.
+    columns:
+      - name: data_key
+        description: Verso `dim_data`.
+        data_tests: [not_null]
+      - name: paese_key
+        description: Verso `dim_paese`.
+        data_tests: [not_null]
+      - name: prodotto_key
+        description: Verso `dim_prodotto`.
+        data_tests: [not_null]
+      - name: valore_lordo
+        description: Somma del valore delle righe non di reso.
+      - name: valore_resi
+        description: Valore dei resi, positivo.
+      - name: valore_netto
+        description: Lordo meno resi. Additiva.
+        data_tests: [not_null]
+      - name: pezzi_venduti
+        description: Quantità venduta, resi esclusi.
+      - name: pezzi_resi
+        description: Quantità resa, positiva.
+      - name: ordini
+        description: >
+          Fatture distinte non di reso. Additiva **solo perché** una fattura
+          appartiene a un solo giorno e a un solo paese: se la grana cambiasse,
+          questa colonna comincerebbe a contare doppio senza dirlo.
+        data_tests: [not_null]
+      - name: fatture_di_reso
+        description: Fatture distinte di solo reso.
+      - name: righe
+        description: Quante righe di fattura.
+        data_tests: [not_null]
+
+  - name: agg_indicatori_periodo
+    description: >
+      I cinque indicatori già calcolati, a cinque livelli di aggregazione
+      (`tutto`, `anno`, `mese`, `paese`, `anno_paese`). Metabase legge una
+      colonna e la mostra: nessuna formula vive dentro un grafico.
+      I livelli servono ai due indicatori che non si possono sommare — i
+      clienti distinti e i rapporti.
+    columns:
+      - name: livello
+        description: >
+          A che aggregazione appartiene la riga. **Ogni domanda deve filtrarlo**:
+          sommare righe di livelli diversi conta gli stessi dati più volte.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [tutto, anno, mese, paese, anno_paese]
+      - name: anno
+        description: Nullo sui livelli che non raggruppano per anno.
+      - name: mese
+        description: Valorizzato solo sul livello `mese`.
+      - name: anno_mese
+        description: «2011-11», per ordinare le serie mensili.
+      - name: paese_key
+        description: Nullo sui livelli che non raggruppano per paese.
+      - name: nome_paese
+        description: Il nome normalizzato. Nullo quando la riga vale per tutti i paesi.
+      - name: is_regno_unito
+        description: Nullo quando la riga non riguarda un paese solo.
+      - name: valore_lordo
+        description: >
+          Fatturato senza i resi. Zero — non nullo — quando in quel periodo non
+          si è venduto niente: succede davvero, il Giappone nel 2009 ha solo
+          resi.
+        data_tests: [not_null]
+      - name: valore_resi
+        description: Valore dei resi, positivo. Zero se non ce ne sono stati.
+        data_tests: [not_null]
+      - name: valore_netto
+        description: Fatturato netto, resi compresi come negativi.
+        data_tests: [not_null]
+      - name: ordini
+        description: Fatture distinte, resi esclusi.
+        data_tests: [not_null]
+      - name: clienti_attivi
+        description: >
+          Clienti distinti a quel livello, membro *Sconosciuto* escluso.
+          Non è sommabile fra righe: è la ragione per cui i livelli esistono.
+        data_tests: [not_null]
+      - name: pezzi_venduti
+        description: Quantità venduta.
+      - name: righe
+        description: Righe di fattura comprese nella riga.
+        data_tests: [not_null]
+      - name: scontrino_medio
+        description: Fatturato netto diviso ordini, calcolato a questo livello.
+      - name: tasso_reso_percentuale
+        description: Valore dei resi sul lordo, in percentuale, a questo livello.

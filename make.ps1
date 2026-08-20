@@ -62,6 +62,14 @@ $comandi = [ordered]@{
                   } }
     'test'   = @{ descrizione = 'Solo i test, senza ricostruire i modelli'
                   azione      = { uv run --frozen python scripts/esegui_dbt.py test --target $env:TARGET } }
+    'cruscotti' = @{ descrizione = 'Prepara Metabase e ricostruisce domande e cruscotti'
+                  azione      = {
+                      uv run --frozen python -m scripts.utente_metabase
+                      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                      uv run --frozen python -m metabase.prepara
+                      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                      uv run --frozen python -m metabase.configura
+                  } }
     'docs'   = @{ descrizione = 'Genera e apre la documentazione dbt con il lineage'
                   azione      = {
                       uv run --frozen python scripts/esegui_dbt.py docs generate --target $env:TARGET

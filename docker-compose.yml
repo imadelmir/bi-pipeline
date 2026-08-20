@@ -1,7 +1,7 @@
-# Servizi locali del progetto (M1-T6).
+# Servizi locali del progetto (M1-T6, M7-T1).
 #
-# Per ora solo PostgreSQL: Metabase entra in M7, quando c'è uno schema marts da
-# mostrargli (vedi docs/decisioni.md, D3).
+# PostgreSQL tiene i tre schemi; Metabase legge soltanto `marts`, e con un
+# utente che non sa scrivere.
 
 services:
   db:
@@ -40,6 +40,49 @@ services:
       retries: 10
       start_period: 10s
 
+  metabase:
+    image: metabase/metabase:v0.63.14
+    container_name: bi-pipeline-metabase
+    restart: unless-stopped
+
+    # Metabase ha bisogno di un database suo per dashboard, domande e utenti.
+    # Di default userebbe un file H2 dentro il contenitore: sparirebbe al primo
+    # `docker compose down`, portandosi via tutto il lavoro fatto a mano.
+    # Qui usa PostgreSQL, sullo stesso server ma in un database separato — che
+    # non è lo schema `marts`: i suoi dati non c'entrano niente con le vendite.
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: ${METABASE_DB_NAME:-metabase}
+      MB_DB_PORT: 5432
+      MB_DB_USER: ${POSTGRES_USER}
+      MB_DB_PASS: ${POSTGRES_PASSWORD}
+      MB_DB_HOST: db
+      # Il fuso serve ai raggruppamenti per giorno: senza, un ordine delle
+      # 23:30 finirebbe nel giorno dopo.
+      JAVA_TIMEZONE: Europe/Rome
+
+    ports:
+      - "${METABASE_PORT:-3000}:3000"
+
+    volumes:
+      # I dati veri stanno in PostgreSQL; qui restano i file di appoggio.
+      - metabase_data:/plugins
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      # Metabase impiega un minuto abbondante ad avviarsi la prima volta:
+      # migra il proprio database prima di rispondere.
+      start_period: 120s
+
 volumes:
   postgres_data:
     name: bi-pipeline-postgres-data
+  metabase_data:
+    name: bi-pipeline-metabase-data
