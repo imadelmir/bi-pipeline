@@ -56,8 +56,12 @@ ricostruiscono con `make cruscotti`.
 | Pagina | Cosa mostra |
 | --- | --- |
 | **Andamento** | I cinque indicatori con la variazione sull'anno prima, la serie mensile, la scomposizione lordo → resi → netto |
-| **Prodotti e clienti** | I primi venti prodotti, la distribuzione dello scontrino, i clienti per fatturato, i prodotti che tornano indietro |
+| **Prodotti e clienti** | I primi dodici prodotti, la distribuzione dello scontrino, i clienti per fatturato, i prodotti che tornano indietro |
 | **Geografia** | Il fatturato per paese senza il Regno Unito, mercato interno contro estero, la scheda Italia |
+
+![Cruscotto Andamento](docs/screenshot/cruscotto-1-andamento.png)
+
+Le altre due pagine sono in [`docs/screenshot/`](docs/screenshot/).
 
 I cinque indicatori sul periodo intero:
 

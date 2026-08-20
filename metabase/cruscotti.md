@@ -89,13 +89,20 @@ Cosa si vende, a chi, e cosa torna indietro.
 
 | Scheda | Tipo | Nota |
 | --- | --- | --- |
-| Primi venti prodotti per valore | barre orizzontali | I nomi sono lunghi: in verticale non si leggono |
+| Primi dodici prodotti per valore | barre orizzontali | I nomi sono lunghi: in verticale non si leggono |
 | Primi clienti per fatturato | tabella | Valori da leggere, non da confrontare |
 | Distribuzione dello scontrino | istogramma | La media da sola descrive un cliente che non esiste |
 | Prodotti con il tasso di reso più alto | barre orizzontali | Solo prodotti con almeno cento righe |
 
 La soglia delle cento righe non è estetica: su tre vendite, un reso fa il
 33 % e non significa niente.
+
+**Dodici prodotti e non venti**, come sarebbe naturale in una classifica:
+Metabase raggruppa da sé le barre che non entrano nell'altezza della scheda in
+una voce «Altro», e con venti prodotti quella voce diventava la seconda barra
+più lunga del grafico senza dire niente. Le impostazioni per disattivarlo
+vengono salvate ma ignorate: l'unica strada che non dipende dalla dimensione
+della finestra di chi guarda è chiedere meno righe.
 
 ## Cruscotto 3 — Geografia
 
@@ -104,7 +111,7 @@ Dove sono i clienti, e perché la scala inganna.
 | Scheda | Tipo | Nota |
 | --- | --- | --- |
 | Fatturato per paese, senza il Regno Unito | barre orizzontali | Il Regno Unito è escluso di proposito |
-| Mercato interno contro estero | tabella con quote | Le proporzioni, senza torte |
+| Mercato interno contro estero | tabella con quote | Provata anche come barra impilata: con l'84 % da una parte, la fetta piccola diventa una riga sottile |
 | Scheda Italia | tabella | Con il numero di clienti accanto |
 
 **Il Regno Unito è fuori dalla classifica.** Vale il 91,9 % delle righe e
