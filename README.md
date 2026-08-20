@@ -86,10 +86,9 @@ PowerShell equivalente: `.\make.ps1 up`, `.\make.ps1 ingest`, e così via.
 | `make docs` | Genera e apre la documentazione dbt con il lineage |
 | `make flow` | Il flusso Prefect completo |
 
-I comandi delle milestone non ancora raggiunte esistono già e dichiarano quale
-task li riempirà, poi escono con errore: un comando che non fa niente e risponde
-«tutto bene» è il modo più rapido per costruirsi una CI verde che non prova
-nulla.
+`make flow` fa tutto da solo: scarica, carica, costruisce i modelli, esegue i
+94 test e controlla la freschezza, stampando quanto è durato ogni passo. Gli
+altri comandi servono quando si vuole rifare un pezzo solo.
 
 ## Struttura
 
@@ -102,7 +101,7 @@ docs/
 ├── milestones/ Una relazione per milestone, con i numeri misurati
 ├── decisioni.md   Le decisioni tecniche e le alternative scartate
 ├── piano.md       Il piano di progetto
-└── backlog.md     Le 8 milestone e i 53 task
+└── backlog.md     Le 8 milestone e i 78 task
 ```
 
 ## Le milestone
