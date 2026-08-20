@@ -604,8 +604,9 @@ CRUSCOTTI: list[Cruscotto] = [
                 24,
                 1,
                 testo="Lo scontrino medio dice una cosa, la distribuzione ne "
-                "dice un'altra: metà delle fatture sta sotto le 150 sterline. "
-                "La media da sola descrive un cliente che non esiste.",
+                "dice un'altra: la mediana è 303 sterline, e sotto le 150 sta "
+                "solo un quarto delle fatture. La media da sola descrive un "
+                "cliente che non esiste.",
             ),
         ],
     ),
