@@ -33,6 +33,14 @@
     significherebbe buttare via uno dei cinque indicatori.
 */
 
+-- Dipendenza dichiarata a mano perché il fatto **non legge** `dim_data`: la
+-- chiave del giorno la calcola (`to_char(data_ora, 'YYYYMMDD')`), che evita un
+-- join da un milione di righe per ottenere un numero che si ricava dalla data.
+-- Senza questa riga dbt non saprebbe che le due tabelle sono legate: il grafo
+-- mostrerebbe una stella con un braccio staccato, e potrebbe costruire il fatto
+-- prima del calendario a cui il test `relationships` lo confronta.
+-- depends_on: {{ ref('dim_data') }}
+
 with vendite as (
 
     select

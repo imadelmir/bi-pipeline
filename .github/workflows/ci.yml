@@ -1,13 +1,14 @@
-# Controlli automatici su ogni push e pull request (M1-T10).
+# Controlli automatici su ogni push e pull request (M1-T10, M5-T10).
 #
 # A cosa serve, visto che gli stessi controlli girano già nell'hook
 # pre-commit: a girare *sempre*. Un hook si salta con --no-verify e una
 # macchina appena clonata non lo ha nemmeno attivo. Qui il verde o il rosso
 # stanno scritti accanto al commit, e una pull request rossa non si unisce.
 #
-# I test dei modelli (`dbt build` su un PostgreSQL di servizio) entrano in
-# M5-T10, quando esisteranno modelli da testare. Finché non ci sono, un job
-# che "passa" senza provare niente sarebbe peggio della sua assenza.
+# Due lavori separati, perché costano tempi diversi: i controlli statici
+# rispondono in mezzo minuto, la pipeline sui dati veri ha bisogno di un
+# database, di 43 MB di sorgente e di qualche minuto. Tenerli distinti
+# significa sapere subito se hai rotto i tipi, senza aspettare la parte lenta.
 
 name: CI
 
@@ -59,3 +60,90 @@ jobs:
 
       - name: Tipi (mypy --strict)
         run: uv run --frozen mypy
+
+  dati:
+    name: Pipeline e test dbt su PostgreSQL
+    runs-on: ubuntu-latest
+    # Non parte se i controlli statici falliscono: alzare un database e
+    # scaricare 43 MB quando i tipi non compilano è tempo sprecato.
+    needs: qualita
+
+    services:
+      db:
+        image: postgres:16.14
+        env:
+          POSTGRES_USER: bi_pipeline
+          POSTGRES_PASSWORD: bi_pipeline_ci
+          POSTGRES_DB: bi_pipeline
+        ports:
+          - 5432:5432
+        # Senza health check il job partirebbe appena il contenitore esiste,
+        # non appena il database accetta connessioni.
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      POSTGRES_USER: bi_pipeline
+      POSTGRES_PASSWORD: bi_pipeline_ci
+      POSTGRES_DB: bi_pipeline
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      DBT_PROJECT_DIR: dbt
+      DBT_PROFILES_DIR: dbt
+
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Installa uv
+        uses: astral-sh/setup-uv@v10.0.1
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Installa le dipendenze bloccate
+        run: uv sync --frozen
+
+      # La sorgente pesa 43,5 MB e la conversione in CSV costa un minuto:
+      # farlo a ogni esecuzione significherebbe sprecare tempo e bussare a UCI
+      # a ogni push. La chiave dipende dal modulo che contiene il checksum
+      # atteso: se cambia il file sorgente, cambia la chiave e la cache si
+      # rifà da sola.
+      - name: Cache della sorgente scaricata
+        uses: actions/cache@v4.2.4
+        with:
+          path: data
+          key: sorgente-${{ hashFiles('ingestion/sources/online_retail.py') }}
+
+      - name: Il profilo dbt
+        run: cp dbt/profiles.yml.example dbt/profiles.yml
+
+      - name: Scarica, verifica il checksum, converte in CSV
+        run: uv run --frozen python -m ingestion.sources.online_retail
+
+      - name: Carica in raw con COPY
+        run: uv run --frozen python -m ingestion.load
+
+      # `dbt build` esegue modelli e test insieme: se un test fallisce, il
+      # lavoro diventa rosso e la pull request non si può unire. È il punto
+      # di M5-T10.
+      - name: dbt build (modelli e test)
+        run: uv run --frozen python scripts/esegui_dbt.py build --target prod
+
+      - name: Freschezza della sorgente
+        run: uv run --frozen python scripts/esegui_dbt.py source freshness --target prod
+
+      # Il conteggio finale in chiaro nel registro della CI: se un giorno
+      # cambiasse senza che nessuno abbia toccato i modelli, si vede qui.
+      - name: Riepilogo
+        run: |
+          uv run --frozen python -c "
+          from ingestion.db import connessione
+          from ingestion.formato import numero
+          with connessione() as c, c.cursor() as cur:
+              for t in ('raw.vendite', 'staging.stg_vendite', 'marts.fct_vendite'):
+                  cur.execute(f'select count(*) from {t}')
+                  print(f'{t:<24} {numero(cur.fetchone()[0]):>12} righe')
+          "
