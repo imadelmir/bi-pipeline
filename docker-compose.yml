@@ -8,6 +8,10 @@ services:
     # Versione fissata al minore, come le dipendenze Python: si alza di
     # proposito, con un commit che lo dice.
     image: postgres:16.14
+    # Il nome del contenitore resta fisso: è quello che compare nei comandi
+    # del README (`docker compose exec db …`) e nei messaggi di errore.
+    # Impedisce di avere due copie accese insieme, ed è voluto — un solo
+    # database locale per macchina.
     container_name: bi-pipeline-db
     restart: unless-stopped
 
@@ -76,13 +80,19 @@ services:
       test: ["CMD", "curl", "--fail", "http://localhost:3000/api/health"]
       interval: 15s
       timeout: 5s
-      retries: 20
-      # Metabase impiega un minuto abbondante ad avviarsi la prima volta:
-      # migra il proprio database prima di rispondere.
-      start_period: 120s
+      retries: 30
+      # Metabase impiega due o tre minuti ad avviarsi la prima volta: migra il
+      # proprio database prima di rispondere. Con una soglia più bassa,
+      # `docker compose up --wait` si arrende e il comando esce in errore
+      # mentre il servizio sta ancora partendo — succedeva con 120 secondi.
+      start_period: 300s
 
 volumes:
+  # Senza `name:` fisso, Docker Compose antepone il nome del progetto — cioè
+  # della cartella. Due copie del repository sullo stesso computer hanno così
+  # due database separati, invece di litigarsi lo stesso volume: è quello che
+  # succedeva durante la prova su macchina pulita, dove il clone nuovo trovava
+  # il database del vecchio e falliva l'autenticazione con la password di
+  # `.env.example`.
   postgres_data:
-    name: bi-pipeline-postgres-data
   metabase_data:
-    name: bi-pipeline-metabase-data
