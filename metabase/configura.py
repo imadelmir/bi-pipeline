@@ -19,6 +19,7 @@ import sys
 import time
 from typing import Any
 
+from metabase import aspetto
 from metabase.api import ErroreMetabase, Metabase
 from metabase.domande import (
     ANNO_PREDEFINITO,
@@ -26,6 +27,7 @@ from metabase.domande import (
     DOMANDE,
     DOMANDE_PER_CHIAVE,
     Domanda,
+    Scheda,
 )
 
 for _flusso in (sys.stdout, sys.stderr):
@@ -37,7 +39,7 @@ NOME_DATABASE = "BI Pipeline"
 # I due filtri comuni a tutte le pagine (M7-T7). Gli identificativi sono
 # scritti a mano e non generati: devono restare gli stessi a ogni esecuzione,
 # altrimenti i collegamenti con le schede si spezzano.
-FILTRI = [
+FILTRI: list[dict[str, Any]] = [
     {
         "id": "f1000001",
         "name": "Anno",
@@ -124,6 +126,53 @@ def _mappature(domanda: Domanda, id_card: int) -> list[dict[str, Any]]:
     return mappature
 
 
+def _scheda(scheda: Scheda, indice: int, domande: dict[str, int]) -> dict[str, Any]:
+    """Una scheda del cruscotto: una domanda oppure del testo.
+
+    Gli identificativi negativi dicono a Metabase «questa è nuova»: le schede
+    si riscrivono tutte a ogni esecuzione, così la posizione nel file è sempre
+    quella sullo schermo.
+    """
+    comune: dict[str, Any] = {
+        "id": -(indice + 1),
+        "row": scheda.riga,
+        "col": scheda.colonna,
+        "size_x": scheda.larghezza,
+        "size_y": scheda.altezza,
+    }
+
+    if scheda.chiave is None:
+        # Scheda di testo: in Metabase è una «carta virtuale», cioè una scheda
+        # senza domanda dietro.
+        tipo = "heading" if scheda.titolo else "text"
+        return {
+            **comune,
+            "card_id": None,
+            "parameter_mappings": [],
+            "visualization_settings": {
+                "virtual_card": {
+                    "name": None,
+                    "display": tipo,
+                    "visualization_settings": {},
+                    "dataset_query": {},
+                    "archived": False,
+                },
+                "text": scheda.testo or "",
+                "text.align_vertical": "middle",
+                "dashcard.background": not scheda.titolo,
+            },
+        }
+
+    domanda = DOMANDE_PER_CHIAVE[scheda.chiave]
+    id_card = domande[scheda.chiave]
+    return {
+        **comune,
+        "card_id": id_card,
+        "parameter_mappings": _mappature(domanda, id_card),
+        "visualization_settings": {},
+    }
+
+
 def sincronizza_cruscotti(mb: Metabase, domande: dict[str, int]) -> list[str]:
     esistenti = {d["name"]: d for d in mb.get("/api/dashboard")}
     indirizzi: list[str] = []
@@ -141,25 +190,10 @@ def sincronizza_cruscotti(mb: Metabase, domande: dict[str, int]) -> list[str]:
             id_cruscotto = int(gia["id"])
             print(f"  aggiorno {cruscotto.nome}")
 
-        schede = []
-        for indice, scheda in enumerate(cruscotto.schede):
-            domanda = DOMANDE_PER_CHIAVE[scheda.chiave]
-            id_card = domande[scheda.chiave]
-            schede.append(
-                {
-                    # Gli identificativi negativi dicono a Metabase «questa è
-                    # nuova»: le schede si riscrivono tutte a ogni esecuzione,
-                    # così la posizione nel file è sempre quella sullo schermo.
-                    "id": -(indice + 1),
-                    "card_id": id_card,
-                    "row": scheda.riga,
-                    "col": scheda.colonna,
-                    "size_x": scheda.larghezza,
-                    "size_y": scheda.altezza,
-                    "parameter_mappings": _mappature(domanda, id_card),
-                    "visualization_settings": {},
-                }
-            )
+        schede = [
+            _scheda(scheda, indice, domande)
+            for indice, scheda in enumerate(cruscotto.schede)
+        ]
 
         mb.put(
             f"/api/dashboard/{id_cruscotto}",
@@ -192,8 +226,16 @@ def verifica(mb: Metabase, domande: dict[str, int]) -> None:
     ):
         risposta = mb.post(f"/api/card/{domande[chiave]}/query", {})
         righe = risposta.get("data", {}).get("rows", [])
-        valore = righe[0][0] if righe and righe[0] else "—"
-        print(f"  {DOMANDE_PER_CHIAVE[chiave].nome:<20} {valore}")
+        # Le domande degli indicatori restituiscono la serie degli anni: il
+        # valore da mostrare è l'ultimo, e sta nella seconda colonna — la
+        # prima è il periodo che serve a Metabase per calcolare la variazione.
+        valore = righe[-1][1] if righe and len(righe[-1]) > 1 else "—"
+        precedente = righe[-2][1] if len(righe) > 1 else None
+        confronto = ""
+        if precedente not in (None, 0):
+            variazione = (float(valore) - float(precedente)) / float(precedente) * 100
+            confronto = f"  ({variazione:+.1f} % sull'anno prima)"
+        print(f"  {DOMANDE_PER_CHIAVE[chiave].nome:<20} {valore}{confronto}")
 
 
 def main() -> int:
@@ -208,6 +250,9 @@ def main() -> int:
     mb = Metabase()
     mb.aspetta()
     mb.entra(os.environ["METABASE_ADMIN_EMAIL"], os.environ["METABASE_ADMIN_PASSWORD"])
+
+    aspetto.applica(mb)
+    print()
 
     id_database = _database(mb)
     print(f"database «{NOME_DATABASE}», id {id_database}")

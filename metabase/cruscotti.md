@@ -13,6 +13,30 @@ nell'interfaccia vive su una macchina sola: quando quella macchina si perde,
 si perde anche il lavoro, e nessuno può leggere in una pull request cosa è
 cambiato.
 
+## L'aspetto
+
+**Il font e i colori dell'interfaccia non si possono cambiare** nell'edizione
+open source di Metabase: sono dietro la funzionalità `whitelabel`, e un
+`PUT /api/setting/application-font` risponde 500 dicendolo. Le impostazioni
+sono comunque scritte in [`metabase/aspetto.py`](aspetto.py), che le prova e
+riporta l'esito: il giorno che l'istanza cambiasse edizione, non c'è niente da
+riscrivere.
+
+Quello che si può fare — e che conta di più — si imposta **per colonna e per
+scheda**, in [`metabase/formati.py`](formati.py) e accanto a ogni domanda:
+
+| Cosa | Come |
+| --- | --- |
+| Importi | Sterline con il simbolo e il separatore delle migliaia; forma compatta (£ 9,0 Mln) sui numeri singoli, cifre intere nelle tabelle |
+| Percentuali | Due decimali e il simbolo, senza moltiplicare due volte |
+| Colori delle serie | Blu per la serie principale, viola tratteggiato per l'anno precedente, salmone per i resi, verde per le distribuzioni |
+| Variazioni | I cinque indicatori mostrano sotto quanto sono cambiati rispetto all'anno prima |
+| Assi | Titolo solo dove serve: «Fatturato netto» sull'asse dei valori, niente sull'asse dei mesi, che si capisce da solo |
+
+Le tre pagine hanno anche **titoli di sezione e note di lettura**: una pagina di
+soli numeri costringe chi la guarda a indovinare cosa sta guardando, e due righe
+accanto a un grafico valgono più di un grafico in più.
+
 ## La regola che vale su tutte le pagine
 
 **I calcoli stanno in dbt.** Le domande leggono

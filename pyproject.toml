@@ -50,6 +50,13 @@ extend-exclude = ["docs/piano.md", "docs/backlog.md"]
 # UP sintassi moderna · SIM semplificazioni · RUF regole di ruff
 select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF"]
 
+# Caratteri che ruff segnala come «confondibili» con quelli ASCII, e che qui
+# sono voluti: finiscono nelle etichette dei grafici e nei testi delle
+# dashboard, dove la tipografia giusta si vede. Il trattino lungo separa gli
+# intervalli («50 – 150»), il segno per indica un rapporto, l'apostrofo
+# tipografico è quello corretto in italiano.
+allowed-confusables = ["–", "—", "×", "’", "·"]
+
 [tool.mypy]
 python_version = "3.12"
 # Modalità stretta sui moduli di ingestione (M1-T5): sono quelli che toccano
@@ -57,7 +64,7 @@ python_version = "3.12"
 strict = true
 warn_unreachable = true
 show_error_codes = true
-files = ["ingestion", "orchestration", "scripts"]
+files = ["ingestion", "orchestration", "scripts", "metabase"]
 
 [[tool.mypy.overrides]]
 # Prefect espone decoratori dinamici che mypy non sa seguire fino in fondo.
