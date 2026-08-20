@@ -1,6 +1,6 @@
 # M6 — Orchestrazione
 
-Chiusa il 20/08/2026 · commit iniziale `643f152` · commit finale da questa relazione
+Chiusa il 20/08/2026 · commit iniziale `643f152` · commit finale `e1dfd74`
 
 Sei task su sei. Un comando porta da file sorgente a marts testati in 54
 secondi, e se qualcosa si rompe si capisce dove senza aprire un registro.
