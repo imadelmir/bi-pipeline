@@ -40,11 +40,11 @@ logs/
 .prefect/
 
 # --- Note di lavoro ----------------------------------------------------------
-# CLAUDE.md raccoglie requisiti, architettura e convenzioni per lo sviluppo.
-# È materiale di lavoro personale e resta sulla macchina: quello che serve a
-# chi legge il repository sta nel README, in docs/piano.md e in
+# NOTE-DI-LAVORO.md raccoglie requisiti, architettura e convenzioni per lo
+# sviluppo. È materiale di lavoro personale e resta sulla macchina: quello che
+# serve a chi legge il repository sta nel README, in docs/piano.md e in
 # docs/decisioni.md.
-CLAUDE.md
+NOTE-DI-LAVORO.md
 
 # --- Sistema operativo ed editor ---------------------------------------------
 .DS_Store
