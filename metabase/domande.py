@@ -33,7 +33,6 @@ from typing import Any
 
 from metabase.formati import (
     BLU,
-    GRAFITE,
     SALMONE,
     VERDE,
     VIOLA,
@@ -307,6 +306,11 @@ limit 20
             "graph.dimensions": ["Prodotto"],
             "graph.metrics": ["Fatturato netto"],
             "graph.show_values": True,
+            # Senza questo, Metabase raggruppa le barre oltre la decima in una
+            # voce «Altro» — che in una classifica dei primi venti diventava la
+            # seconda barra più lunga e non significava niente.
+            "graph.max_categories_enabled": False,
+            "graph.max_categories": 20,
             "series_settings": {"Fatturato netto": {"color": BLU}},
             "column_settings": sterline("Fatturato netto", compatto=True),
         },
@@ -411,6 +415,8 @@ limit 12
             "graph.dimensions": ["Prodotto"],
             "graph.metrics": ["Tasso di reso"],
             "graph.show_values": True,
+            "graph.max_categories_enabled": False,
+            "graph.max_categories": 15,
             # Salmone: sono resi, cioè la parte che va storta. Il rosso pieno
             # su un cruscotto guardato tutto il giorno drammatizza.
             "series_settings": {"Tasso di reso": {"color": SALMONE}},
@@ -442,6 +448,8 @@ limit 12
             "graph.dimensions": ["Paese"],
             "graph.metrics": ["Fatturato netto"],
             "graph.show_values": True,
+            "graph.max_categories_enabled": False,
+            "graph.max_categories": 15,
             "series_settings": {"Fatturato netto": {"color": BLU}},
             "column_settings": sterline("Fatturato netto", compatto=True),
         },
@@ -449,32 +457,27 @@ limit 12
     Domanda(
         chiave="interno_contro_estero",
         nome="Mercato interno contro estero",
-        descrizione="Una barra impilata e non una torta: due fette così "
-        "diverse in un cerchio si leggono peggio, e la torta non permette di "
-        "confrontare due periodi affiancati.",
+        descrizione="Una tabella e non una torta: due quote così diverse in un "
+        "cerchio si leggono peggio, e la torta non permette di confrontare due "
+        "periodi affiancati. Provata anche come barra impilata: con l'84 % da "
+        "una parte, la fetta piccola diventa una riga sottile e il valore "
+        "scritto sopra copre tutto.",
         sql="""
 select
-    'Fatturato' as "Anno",
-    round(sum(valore_netto) filter (where is_regno_unito), 2) as "Regno Unito",
-    round(sum(valore_netto) filter (where not is_regno_unito), 2) as "Estero"
+    case when is_regno_unito then 'Regno Unito' else 'Estero' end as "Mercato",
+    round(sum(valore_netto), 2) as "Fatturato netto",
+    round(sum(valore_netto) * 100.0 / sum(sum(valore_netto)) over (), 1)
+        as "Quota"
 from marts.agg_indicatori_periodo
 where livello = 'anno_paese' and anno = {{anno}}
+group by is_regno_unito
+order by sum(valore_netto) desc
 """,
-        display="bar",
+        display="table",
         impostazioni={
-            "graph.dimensions": ["Anno"],
-            "graph.metrics": ["Regno Unito", "Estero"],
-            "stackable.stack_type": "normalized",
-            "graph.x_axis.title_text": "",
-            "graph.y_axis.title_text": "",
-            "graph.show_values": True,
-            "series_settings": {
-                "Regno Unito": {"color": GRAFITE},
-                "Estero": {"color": BLU},
-            },
             "column_settings": unisci(
-                sterline("Regno Unito", compatto=True),
-                sterline("Estero", compatto=True),
+                sterline("Fatturato netto", decimali=0),
+                percentuale("Quota", decimali=1),
             ),
         },
     ),
@@ -557,7 +560,8 @@ CRUSCOTTI: list[Cruscotto] = [
                 "valore** e non sul numero di pezzi.",
             ),
             Scheda(5, 0, 16, 7, chiave="fatturato_per_mese"),
-            Scheda(5, 16, 8, 7, chiave="lordo_resi_netto"),
+            # La tabella ha tre righe: alta sette lasciava mezza scheda vuota.
+            Scheda(5, 16, 8, 4, chiave="lordo_resi_netto"),
             Scheda(
                 12,
                 0,
@@ -606,12 +610,12 @@ CRUSCOTTI: list[Cruscotto] = [
             Scheda(0, 0, 24, 1, titolo=True, testo="Dove sono i clienti"),
             Scheda(1, 0, 14, 9, chiave="fatturato_per_paese"),
             Scheda(1, 14, 10, 4, chiave="interno_contro_estero"),
-            Scheda(5, 14, 10, 5, chiave="scheda_italia"),
+            Scheda(5, 14, 10, 4, chiave="scheda_italia"),
             Scheda(
                 10,
                 0,
                 24,
-                2,
+                4,
                 testo="**Il Regno Unito non è nella classifica, ed è una "
                 "scelta.** Vale l'84 % del fatturato: lasciandolo dentro, la "
                 "sua barra arriva a fondo pagina e tutte le altre diventano "

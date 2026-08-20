@@ -25,6 +25,9 @@ services:
       # collazione decide l'ordine, e cambiarla a metà strada cambierebbe i
       # risultati. Meglio dichiararla una volta.
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+      # Serve allo script di inizializzazione, che crea il database di
+      # appoggio di Metabase.
+      METABASE_DB_NAME: ${METABASE_DB_NAME:-metabase}
 
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
@@ -33,6 +36,9 @@ services:
       # Volume con nome, non una cartella del progetto: i dati sopravvivono a
       # `docker compose down` e non finiscono mai per sbaglio dentro git.
       - postgres_data:/var/lib/postgresql/data
+      # Eseguito solo alla prima inizializzazione: crea il database che
+      # Metabase si aspetta di trovare già pronto.
+      - ./docker/init:/docker-entrypoint-initdb.d:ro
 
     # Senza healthcheck, `docker compose up -d` torna appena il contenitore
     # parte — non appena il database accetta connessioni. Il caricamento
