@@ -192,8 +192,16 @@ DOMANDE: list[Domanda] = [
         "regalo è fortissima, e novembre contro ottobre direbbe solo che si "
         "avvicina il Natale.",
         sql="""
+-- `make_date` e non `to_date(mese, 'MM')`: quest'ultima costruisce una data
+-- nell'anno 1 *avanti Cristo*, e il grafico esce con un asse che va dal 1944
+-- al 2108 e nessuna linea sopra.
+--
+-- Le due serie usano la stessa data — quella dell'anno selezionato — così si
+-- sovrappongono mese per mese invece di finire su due tratti lontani
+-- dell'asse: il confronto si legge in verticale, che è il motivo per cui
+-- esiste.
 select
-    to_date(mese::text, 'MM') as mese,
+    make_date({{anno}}, mese, 1) as "Mese",
     sum(valore_netto) filter (where anno = {{anno}})     as "Anno selezionato",
     sum(valore_netto) filter (where anno = {{anno}} - 1) as "Anno precedente"
 from marts.agg_indicatori_periodo
@@ -204,7 +212,7 @@ order by mese
 """,
         display="line",
         impostazioni={
-            "graph.dimensions": ["mese"],
+            "graph.dimensions": ["Mese"],
             "graph.metrics": ["Anno selezionato", "Anno precedente"],
             "graph.x_axis.title_text": "",
             "graph.y_axis.title_text": "Fatturato netto",
@@ -228,14 +236,14 @@ order by mese
         nome="Ordini per mese",
         descrizione="Fatture distinte per mese, resi esclusi.",
         sql="""
-select to_date(mese::text, 'MM') as mese, ordini as "Ordini"
+select make_date({{anno}}, mese, 1) as "Mese", ordini as "Ordini"
 from marts.agg_indicatori_periodo
 where livello = 'mese' and anno = {{anno}}
 order by mese
 """,
         display="bar",
         impostazioni={
-            "graph.dimensions": ["mese"],
+            "graph.dimensions": ["Mese"],
             "graph.metrics": ["Ordini"],
             "graph.x_axis.title_text": "",
             "graph.y_axis.title_text": "Ordini",
