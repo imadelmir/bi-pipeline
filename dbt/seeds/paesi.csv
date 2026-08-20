@@ -1,0 +1,44 @@
+paese_sorgente,nome,macro_area,nota
+United Kingdom,Regno Unito,Regno Unito,
+EIRE,Irlanda,Europa occidentale,EIRE è il nome irlandese dell'Irlanda
+Germany,Germania,Europa occidentale,
+France,Francia,Europa occidentale,
+Netherlands,Paesi Bassi,Europa occidentale,
+Belgium,Belgio,Europa occidentale,
+Switzerland,Svizzera,Europa occidentale,
+Austria,Austria,Europa occidentale,
+Channel Islands,Isole del Canale,Europa occidentale,Dipendenze della Corona: non fanno parte del Regno Unito
+Spain,Spagna,Europa meridionale,
+Portugal,Portogallo,Europa meridionale,
+Italy,Italia,Europa meridionale,
+Greece,Grecia,Europa meridionale,
+Malta,Malta,Europa meridionale,
+Cyprus,Cipro,Europa meridionale,
+Norway,Norvegia,Europa settentrionale,
+Sweden,Svezia,Europa settentrionale,
+Finland,Finlandia,Europa settentrionale,
+Denmark,Danimarca,Europa settentrionale,
+Iceland,Islanda,Europa settentrionale,
+Poland,Polonia,Europa orientale,
+Lithuania,Lituania,Europa orientale,
+Czech Republic,Repubblica Ceca,Europa orientale,
+USA,Stati Uniti,Nord America,
+Canada,Canada,Nord America,
+Bermuda,Bermuda,Nord America,Territorio britannico d'oltremare
+Brazil,Brasile,America Latina,
+West Indies,Antille,America Latina,Non è un paese ma un'area caraibica
+Australia,Australia,Oceania,
+Japan,Giappone,Asia,
+Singapore,Singapore,Asia,
+Hong Kong,Hong Kong,Asia,
+Korea,Corea del Sud,Asia,La sorgente non distingue le due Coree
+Thailand,Thailandia,Asia,
+Israel,Israele,Medio Oriente,
+United Arab Emirates,Emirati Arabi Uniti,Medio Oriente,
+Saudi Arabia,Arabia Saudita,Medio Oriente,
+Bahrain,Bahrein,Medio Oriente,
+Lebanon,Libano,Medio Oriente,
+RSA,Sudafrica,Africa,RSA sta per Republic of South Africa
+Nigeria,Nigeria,Africa,
+Unspecified,Non specificato,Non attribuito,Non è un paese: il campo era vuoto o ignoto
+European Community,Comunità Europea,Non attribuito,Non è un paese ma un'aggregazione

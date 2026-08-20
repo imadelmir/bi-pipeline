@@ -256,3 +256,75 @@ caso, ed è il genere di errore che in un cruscotto non si nota mai.
 Metabase sta leggendo — e le riscrive con un trimestre di dati invece di due
 anni. Il cruscotto mostrerebbe numeri sbagliati senza che nessuno abbia toccato
 niente, e per giunta nel momento in cui si sta lavorando ad altro.
+
+---
+
+## D12 — I festivi si calcolano dalle regole, non si copiano da un elenco
+
+**Milestone:** M4-T1
+
+`scripts/genera_festivi_uk.py` genera `dbt/seeds/festivi_regno_unito.csv`
+applicando le regole di Inghilterra e Galles: Pasqua con l'algoritmo gregoriano
+anonimo, primo e ultimo lunedì per le feste di maggio e agosto, spostamento al
+primo giorno feriale libero per quelle a data fissa.
+
+**Alternativa scartata:** scrivere a mano le 25 date del 2009-2011.
+
+**Perché:** l'elenco ufficiale pubblicato da gov.uk parte dal 2019 e non copre
+il periodo dei dati. Le regole invece sono pubbliche e stabili. Scrivere le
+date a memoria significa sbagliarne una e non accorgersene mai: un festivo
+sbagliato non rompe niente, cambia solo di poco un confronto fra giorni
+lavorativi — il tipo di errore che sopravvive per anni.
+
+L'unica voce scritta a mano è il **29 aprile 2011**, festività straordinaria
+per il matrimonio reale: non discende da nessuna regola, e sta nel codice con
+il suo commento.
+
+**Trappola trovata:** spostando le feste fisse in un passaggio solo, nel 2011
+il Natale si prendeva il 26 dicembre (lunedì) e Santo Stefano il 27. Le date
+erano giuste ma i nomi scambiati. Servono due passaggi: prima si fissano le
+feste che cadono già in giorno feriale, poi si spostano quelle di weekend.
+
+---
+
+## D13 — Il raccordo dei paesi si unisce con un join esterno
+
+**Milestone:** M4-T4
+
+`dim_paese` nasce dai paesi presenti nei dati, uniti in `left join` alla seed
+`paesi.csv`.
+
+**Alternativa scartata:** join interno, che sarebbe la cosa naturale visto che
+la seed copre tutti i 43 valori esistenti.
+
+**Perché:** copre tutti i valori *oggi*. Il giorno che nella sorgente comparisse
+un paese nuovo, un join interno lo farebbe sparire dalla dimensione **e con lui
+tutte le sue vendite dal fatto**: il fatturato calerebbe senza che nessun test
+fallisca. Con il join esterno il paese entra comunque, con macro-area «Non
+attribuito», e la colonna `da_mappare` diventa vera. Un test pretende che resti
+falsa: il problema si presenta come test rosso, non come numero sbagliato.
+
+---
+
+## D14 — Il fatto è incrementale con `delete+insert` sul giorno
+
+**Milestone:** M4-T6
+
+`fct_vendite` è `materialized='incremental'`, `unique_key='data_key'`,
+`incremental_strategy='delete+insert'`, e riparte dall'ultimo giorno già
+presente in tabella.
+
+**Alternativa scartata:** aggiungere in coda le sole righe più recenti.
+
+**Perché:** l'append si fida che nessun giorno venga mai ricaricato, e basta un
+caricamento ripetuto perché le righe si duplichino — lo stesso problema che
+l'ingestione ha risolto in M2-T8, ripresentato uno strato più in alto. Con
+`delete+insert` i giorni che rientrano nella finestra vengono cancellati e
+riscritti.
+
+Riparte **dall'**ultimo giorno e non dal successivo perché quel giorno potrebbe
+essere stato caricato a metà.
+
+**Prezzo dichiarato:** se cambia la logica dei modelli a monte, il fatto non se
+ne accorge — i giorni vecchi restano come sono. Dopo una modifica a
+`stg_vendite` serve `--full-refresh`.

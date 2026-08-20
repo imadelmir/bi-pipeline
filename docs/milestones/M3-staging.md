@@ -106,7 +106,7 @@ codici con più di una descrizione, zero righe senza descrizione).
 | Target | Schema | Righe | Periodo | `dbt build` |
 | --- | --- | ---: | --- | ---: |
 | `prod` | `staging` | 1.021.137 | 01/12/2009 → 09/12/2011 | 26 s |
-| `dev` | `staging_dev` | 204.414 | 09/09/2011 → 09/12/2011 | 20 s |
+| `dev` | `staging_dev` | 204.415 | 09/09/2011 → 09/12/2011 | 20 s |
 
 Gli stessi identici modelli: cambia solo la macro `limite_periodo`. La
 differenza di tempo è modesta perché lo staging è fatto di viste, che si

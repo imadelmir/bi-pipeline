@@ -1,0 +1,291 @@
+version: 2
+
+models:
+  - name: dim_data
+    description: >
+      Il calendario dell'intero periodo, generato e non letto dai dati: i
+      giorni di chiusura non compaiono nelle vendite, e una dimensione nata
+      dalle vendite farebbe sparire le domeniche da ogni grafico giornaliero
+      senza dirlo. I festivi sono quelli di Inghilterra e Galles.
+    columns:
+      - name: data_key
+        description: La data in forma numerica (20091201). Chiave della dimensione.
+        data_tests: [unique, not_null]
+      - name: data
+        description: La data vera e propria.
+        data_tests: [unique, not_null]
+      - name: anno
+        description: Anno.
+        data_tests: [not_null]
+      - name: trimestre
+        description: Trimestre, da 1 a 4.
+        data_tests: [not_null]
+      - name: mese
+        description: Mese, da 1 a 12.
+        data_tests: [not_null]
+      - name: nome_mese
+        description: Nome del mese in italiano, scritto qui e non da `to_char`, che segue la lingua del database.
+        data_tests: [not_null]
+      - name: anno_mese
+        description: «2011-11», per ordinare le serie mensili senza join.
+        data_tests: [not_null]
+      - name: settimana
+        description: Numero della settimana ISO.
+        data_tests: [not_null]
+      - name: giorno_settimana
+        description: Lunedì = 1, domenica = 7 (ISO).
+        data_tests: [not_null]
+      - name: nome_giorno
+        description: Nome del giorno in italiano.
+        data_tests: [not_null]
+      - name: giorno_del_mese
+        description: Giorno del mese.
+        data_tests: [not_null]
+      - name: is_weekend
+        description: Sabato o domenica.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+                quote: false
+      - name: is_festivo
+        description: Festività di Inghilterra e Galles, dalla seed generata dalle regole ufficiali.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+                quote: false
+      - name: nome_festivo
+        description: Come si chiama la festività. Nullo negli altri giorni.
+      - name: is_lavorativo
+        description: Né weekend né festivo.
+        data_tests: [not_null]
+
+  - name: dim_prodotto
+    description: >
+      Un prodotto per riga, con la descrizione già scelta in staging e quattro
+      colonne che nascono dalle vendite: prima e ultima volta venduto, quante
+      righe, prezzo medio. Chiave surrogata: il fatto non punta al codice della
+      sorgente.
+    columns:
+      - name: prodotto_key
+        description: Chiave surrogata, assegnata in ordine di codice.
+        data_tests: [unique, not_null]
+      - name: codice_prodotto
+        description: Il codice della sorgente, ripulito dagli spazi.
+        data_tests: [unique, not_null]
+      - name: descrizione
+        description: La descrizione più frequente per quel codice.
+      - name: prima_vendita
+        description: Data della prima riga di vendita.
+        data_tests: [not_null]
+      - name: ultima_vendita
+        description: Data dell'ultima riga di vendita.
+        data_tests: [not_null]
+      - name: righe_vendita
+        description: Quante righe di fattura lo contengono, resi compresi.
+        data_tests: [not_null]
+      - name: prezzo_medio
+        description: >
+          Media dei prezzi unitari, resi esclusi: hanno lo stesso prezzo della
+          vendita ma quantità negativa, e mescolarli abbasserebbe la media
+          senza che nessun prezzo sia mai cambiato.
+      - name: prezzo_minimo
+        description: Prezzo unitario più basso osservato.
+      - name: prezzo_massimo
+        description: Prezzo unitario più alto osservato.
+      - name: pezzi_venduti
+        description: Somma delle quantità, resi esclusi.
+      - name: pezzi_resi
+        description: Somma delle quantità dei soli resi. Negativa per costruzione.
+        data_tests: [not_null]
+
+  - name: dim_cliente
+    description: >
+      Un cliente per riga, più il membro *Sconosciuto* con chiave -1 per il
+      22 % di righe senza codice cliente. Non è un caso limite: senza quella
+      riga, un quinto abbondante del fatturato sparirebbe al primo join
+      interno.
+    columns:
+      - name: cliente_key
+        description: Chiave surrogata. Vale -1 per il membro Sconosciuto.
+        data_tests: [unique, not_null]
+      - name: codice_cliente
+        description: Il codice della sorgente. Nullo solo sul membro Sconosciuto.
+        data_tests: [unique]
+      - name: etichetta
+        description: "Come mostrarlo in un grafico: il codice, oppure «Sconosciuto»."
+        data_tests: [not_null, unique]
+      - name: is_sconosciuto
+        description: >
+          Vero solo sulla riga -1. Gli indicatori che contano i clienti la
+          escludono da qui, senza dover conoscere il valore della chiave.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+                quote: false
+      - name: prima_fattura
+        description: Data della prima fattura. Nulla sul membro Sconosciuto.
+      - name: ultima_fattura
+        description: Data dell'ultima fattura. Nulla sul membro Sconosciuto.
+      - name: ordini
+        description: Fatture distinte, resi esclusi.
+        data_tests: [not_null]
+      - name: resi
+        description: Fatture distinte di solo reso.
+        data_tests: [not_null]
+      - name: valore_totale
+        description: Somma del valore delle sue righe, resi compresi come negativi.
+      - name: paese_principale
+        description: >
+          Il paese più frequente delle sue fatture, non l'ultimo: una singola
+          spedizione a un indirizzo diverso non trasferisce un cliente
+          all'estero.
+
+  - name: dim_paese
+    description: >
+      Un paese per riga, con il nome normalizzato tramite la seed `paesi`.
+      Il join con la seed è esterno di proposito: un paese non ancora mappato
+      compare comunque, invece di far sparire le sue vendite dal fatto.
+    columns:
+      - name: paese_key
+        description: Chiave surrogata.
+        data_tests: [unique, not_null]
+      - name: paese_sorgente
+        description: Il valore come sta nella sorgente («EIRE», «RSA», «Unspecified»).
+        data_tests: [unique, not_null]
+      - name: nome
+        description: Il nome normalizzato in italiano. Se manca il raccordo, resta quello della sorgente.
+        data_tests: [not_null]
+      - name: macro_area
+        description: Raggruppamento geografico. «Non attribuito» per ciò che un paese non è.
+        data_tests: [not_null]
+      - name: da_mappare
+        description: >
+          Vero se il valore non è nella seed. Deve restare falso ovunque: se
+          diventa vero, la seed va aggiornata prima che qualcuno costruisca un
+          grafico per paese.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [false]
+                quote: false
+      - name: is_regno_unito
+        description: >
+          Vero solo per il Regno Unito. Le Isole del Canale non lo sono: sono
+          dipendenze della Corona, e il cruscotto della geografia contrappone
+          mercato interno ed estero.
+        data_tests: [not_null]
+      - name: is_non_attribuito
+        description: Vero per «Unspecified» e «European Community», che paesi non sono.
+        data_tests: [not_null]
+      - name: nota
+        description: Perché questo valore merita una spiegazione. Nullo quasi ovunque.
+
+  - name: fct_vendite
+    description: >
+      Il fatto. Grana: una riga di fattura — un prodotto, su una fattura, in un
+      istante. I resi restano, con quantità e valore negativi. Costruito in
+      modo incrementale sul giorno, con `delete+insert`: rilanciarlo non
+      duplica e il totale resta identico a una ricostruzione completa.
+    columns:
+      - name: data_key
+        description: Verso `dim_data`.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_data')
+                field: data_key
+      - name: prodotto_key
+        description: Verso `dim_prodotto`.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_prodotto')
+                field: prodotto_key
+      - name: cliente_key
+        description: Verso `dim_cliente`. Vale -1 quando la vendita non è attribuibile.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_cliente')
+                field: cliente_key
+      - name: paese_key
+        description: Verso `dim_paese`.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_paese')
+                field: paese_key
+      - name: numero_fattura
+        description: >
+          Dimensione degenere: sta nel fatto e non ha una tabella propria.
+          Una `dim_fattura` conterrebbe solo la chiave — un join in più per
+          zero informazione.
+        data_tests: [not_null]
+      - name: quantita
+        description: Pezzi. Negativa sui resi.
+        data_tests: [not_null]
+      - name: prezzo_unitario
+        description: Prezzo unitario in sterline, sempre maggiore di zero.
+        data_tests: [not_null]
+      - name: valore
+        description: >
+          `quantita * prezzo_unitario`. È la colonna che si somma per il
+          fatturato netto: negativa sui resi, di proposito.
+        data_tests: [not_null]
+      - name: is_reso
+        description: Vero se il numero di fattura inizia per C.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+                quote: false
+      - name: data_ora
+        description: >
+          L'istante della fattura, accanto alla chiave del giorno: serve a
+          ordinare le righe di una fattura e a guardare le fasce orarie, cose
+          che `dim_data` non sa fare.
+        data_tests: [not_null]
+
+seeds:
+  - name: paesi
+    description: >
+      Tabella di raccordo fra il testo libero della sorgente e un nome di
+      paese. Versionata perché è un dato, non una regola: la normalizzazione
+      di `EIRE` in Irlanda si legge qui, non dentro un grafico.
+    columns:
+      - name: paese_sorgente
+        description: Il valore esatto come compare nella colonna `Country`.
+        data_tests: [not_null, unique]
+      - name: nome
+        description: Il nome in italiano.
+        data_tests: [not_null]
+      - name: macro_area
+        description: Raggruppamento geografico.
+        data_tests: [not_null]
+      - name: nota
+        description: Perché la voce merita una spiegazione. Vuota quasi ovunque.
+
+  - name: festivi_regno_unito
+    description: >
+      I giorni festivi di Inghilterra e Galles per il periodo dei dati,
+      generati da `scripts/genera_festivi_uk.py` applicando le regole
+      ufficiali: l'elenco di gov.uk parte dal 2019 e non copre il 2009-2011.
+    columns:
+      - name: data
+        description: Il giorno festivo.
+        data_tests: [not_null, unique]
+      - name: nome_festivo
+        description: Come si chiama. «(recupero)» quando la festa cadeva di weekend.
+        data_tests: [not_null]
