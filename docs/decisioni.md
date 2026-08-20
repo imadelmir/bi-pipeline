@@ -328,3 +328,47 @@ essere stato caricato a metà.
 **Prezzo dichiarato:** se cambia la logica dei modelli a monte, il fatto non se
 ne accorge — i giorni vecchi restano come sono. Dopo una modifica a
 `stg_vendite` serve `--full-refresh`.
+
+---
+
+## D15 — La quadratura verifica due cose, e la seconda solo su `prod`
+
+**Milestone:** M5-T7 · **Bloccante**
+
+`tests/quadratura_totali.sql` controlla che il fatto non perda righe rispetto a
+staging (su entrambi i target) e, **solo su `prod`**, che la somma di
+`stg_esclusioni` corrisponda alle righe di `raw`.
+
+**Alternativa scartata:** un confronto secco fra `raw` e `fct_vendite`.
+
+**Perché:** il target `dev` taglia il periodo a tre mesi mentre `raw` contiene
+tutto. Un confronto secco sarebbe rosso per costruzione in sviluppo — e un test
+che si sa già rosso viene prima ignorato, poi disattivato, poi cancellato.
+
+Il test restituisce `controllo`, `atteso`, `trovato` e `differenza`, non un
+semplice conteggio di righe: un test che dice soltanto «FAIL» costringe a rifare
+a mano l'indagine che aveva già fatto.
+
+**Verificato che fallisce:** cancellate 1.271 righe dal fatto, il test è
+diventato rosso indicando atteso 1.021.137, trovato 1.019.866, differenza 1.271.
+Un test mai visto fallire non è un test, è una speranza.
+
+---
+
+## D16 — La CI lavora sui dati veri, non su un campione
+
+**Milestone:** M5-T10
+
+Il lavoro «dati» della CI alza un PostgreSQL di servizio, scarica i 43,5 MB da
+UCI, carica il milione di righe ed esegue `dbt build` con tutti i test.
+
+**Alternativa scartata:** un campione ridotto o dati generati.
+
+**Perché:** dati finti non contengono i 34.153 duplicati esatti, le 3.457
+rettifiche a quantità negativa e la fattura di reso con quantità positiva —
+cioè esattamente ciò che i test devono intercettare. Verificare la pipeline su
+dati che non hanno i problemi per cui è stata scritta significa non verificarla.
+
+Costa 199 secondi a esecuzione, con la sorgente in cache. In cambio, ogni push
+dimostra che la pipeline produce gli stessi numeri su una macchina che non ha
+mai visto il progetto: 1.067.371 → 1.021.137 → 1.021.137.
