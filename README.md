@@ -6,8 +6,8 @@ rilanciare uno per uno senza sporcare niente.
 
 [![CI](https://github.com/imadelmir/bi-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/imadelmir/bi-pipeline/actions/workflows/ci.yml)
 
-> **Stato:** in costruzione — M1 (Fondamenta) e M2 (Ingestione) chiuse,
-> si passa a M3 (Staging).
+> **Stato:** in costruzione — chiuse M1…M6, dalle fondamenta
+> all'orchestrazione. Restano i cruscotti (M7) e la pubblicazione (M8).
 > Il case study completo arriva a M8.
 
 ---

@@ -94,4 +94,4 @@ docs: ## Genera e apre la documentazione dbt con il lineage
 	$(DBT) docs serve --target $(TARGET)
 
 flow: ## Il flusso Prefect completo, dall'inizio alla fine
-	@echo "Non ancora implementato: arriva con M6-T1." && exit 1
+	$(UV) python -m orchestration.flow --target $(TARGET)

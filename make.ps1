@@ -79,7 +79,7 @@ $comandi = [ordered]@{
     'confronto' = @{ descrizione = 'Cronometra COPY contro pandas.to_sql su centomila righe'
                   azione      = { uv run --frozen python -m ingestion.confronto_copy } }
     'flow'   = @{ descrizione = 'Il flusso Prefect completo, dall inizio alla fine'
-                  azione      = { Write-Host 'Non ancora implementato: arriva con M6-T1.'; exit 1 } }
+                  azione      = { uv run --frozen python -m orchestration.flow --target $env:TARGET } }
 }
 
 if ($Comando -eq 'help') {
