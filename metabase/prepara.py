@@ -111,7 +111,21 @@ def main() -> int:
     print(f"attendo {mb.indirizzo}")
     mb.aspetta()
 
-    if mb.prepara_amministratore(email, password):
+    try:
+        creato = mb.prepara_amministratore(email, password)
+    except ErroreMetabase as errore:
+        # Metabase rifiuta le password che riconosce come comuni, e risponde
+        # con un JSON che parla di «specific-errors». Chi segue il README alla
+        # lettera merita di sapere cosa deve cambiare.
+        if "too common" in str(errore) or "valid password" in str(errore):
+            raise ErroreMetabase(
+                "Metabase ha rifiutato METABASE_ADMIN_PASSWORD perché la "
+                "considera troppo comune. Scegline una più lunga e meno "
+                "prevedibile in .env, poi rilancia."
+            ) from errore
+        raise
+
+    if creato:
         print(f"creato l'amministratore {email}")
     else:
         print("istanza già configurata")
