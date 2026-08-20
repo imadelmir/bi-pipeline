@@ -1,6 +1,6 @@
 # M7 — Cruscotti
 
-Chiusa il 20/08/2026 · commit iniziale `34aa1c1` · commit finale da questa relazione
+Chiusa il 20/08/2026 · commit iniziale `34aa1c1` · commit finale `e071f08`
 
 Otto task su nove. Tre cruscotti, quindici domande, due filtri — tutti definiti
 in file versionati e ricostruibili con un comando. Restano da fare gli
