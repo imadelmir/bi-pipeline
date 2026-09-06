@@ -13,6 +13,18 @@ rilanciare uno per uno senza sporcare niente.
 ## In breve
 
 | | |
+|---|---|
+| **Problema** | Un file Excel da un milione di righe di vendite non si interroga, non si verifica e non si aggiorna |
+| **Il mio ruolo** | Progetto personale, costruito da solo: ingestione, modellazione dbt, orchestrazione, cruscotti |
+| **Risultato** | 1.067.371 righe caricate, 46.234 escluse con il motivo contato, 109 test verdi, tutto in 54 s |
+| **Stack** | Python · PostgreSQL · dbt · Prefect · Docker · Metabase |
+| **Demo** | [Case study con le schermate dei cruscotti](https://portfolio-imad-el-mir.vercel.app/it/projects/bi-pipeline) |
+| **Avvio** | `make up` per i servizi, `make flow` per l'intera pipeline — [istruzioni](#avvio-in-locale) |
+| **Stato** | Completato (agosto 2026) |
+
+### I numeri
+
+| | |
 | --- | ---: |
 | Righe caricate | **1.067.371** |
 | Righe nel fatto, dopo la pulizia | **1.021.137** |
